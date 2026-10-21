@@ -10,15 +10,13 @@ A blue ocean unfolds behind each empty chat. Schools of tiny fish scatter betwee
 
 ## Install
 
-`main` is the **0.1.1 development version**, including Hanzi and bundled/custom fonts. npm remains at **0.1.0**; this update has not been published there yet.
-
 Add **`dsh-ascii-whales`** through DeepSeek Harness's plugin manager, then restart that instance. For a Web profile:
 
 ```sh
 dsh plugin --profile web add dsh-ascii-whales
 ```
 
-Open **Settings → ASCII Whales**. Verified with DSH **0.2.1-rc.2**, Windows and Microsoft Edge Web. Use Desktop's own plugin manager for Desktop installations.
+Open **Settings → ASCII Whales**. Use Desktop's own plugin manager for Desktop installations.
 
 ## Your ocean
 
@@ -28,9 +26,9 @@ Your chosen color anchors the whale body's midtones, with gentle shadows and hig
 
 Choose **Settings → ASCII Whales → Character style → Hanzi** for Chinese characters: 吻 at the snout, 目 at the eyes, 背 along the back, 鳍 on fins and 尾 on tail flukes. Water and ocean characters fill the body; fish become 鱼, 鲤, 鲭 and 鲱. These labels follow the bending body. Hanzi use wider cells, adjustable with cell size.
 
-The plugin embeds **Geist Mono 600** for ASCII, matching the upstream demo, and **Source Han Serif** for Hanzi. These animation-only subsets load offline. Choose **Font → Local custom** to enter separate installed English and Chinese font names. Blank or unavailable names fall back to the bundled font. Local font files are never uploaded or packaged.
+The plugin embeds **Geist Mono 600** for ASCII, matching the upstream demo, and **Source Han Serif** for Hanzi. These animation fonts load offline. Choose **Font → Local custom** to enter separate installed English and Chinese font names.
 
-**Scan local fonts** fills the official dropdown menus after browser permission is granted. Manual entry remains available when scanning is unsupported.
+Click **Scan local fonts**, allow browser access, then choose from the dropdown menus. You can also type a font name directly.
 
 ![Hanzi · light](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-light.gif)
 ![Hanzi · dark](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-dark.gif)
@@ -59,9 +57,7 @@ Size, cell size, speed and wake step by **0.05** below 1 and **0.1** from 1 upwa
 
 Set grid opacity, fish count or wake to zero to hide it. The default whales have relative sizes of 100%, 70% and 84%; the size control scales them together. Small fish are dashes in ASCII mode and fish characters in Hanzi mode; their dimensions follow the character grid.
 
-Settings use official DSH controls. **Restore defaults** uses the theme-aware primary button and brings back the original blue ocean. Preferences stay in this browser/origin. Reduced-motion preferences are respected; animation pauses in background tabs. Fine grids with many whales or high speeds increase rendering cost.
-
-Upgrading from 0.1.0 preserves your saved opacity. Set scene opacity to **1**, or use **Restore defaults**, to see the new full-color appearance.
+Settings use official DSH controls. **Restore defaults** uses the theme-aware primary button and brings back the original blue ocean. Preferences are saved in this browser. The animation follows reduced-motion preferences and pauses in background tabs.
 
 ![Settings and colors](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/settings.gif)
 
@@ -69,7 +65,7 @@ Upgrading from 0.1.0 preserves your saved opacity. Set scene opacity to **1**, o
 
 ## Source and development
 
-This directly adapts **[stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks)**, retaining its simulation, flexible spines, ASCII rasterizer and lighting. The whale shape, DSH integration, palettes and controls are adaptations. See [source attribution](THIRD_PARTY_NOTICES.md) for the pinned commit and ownership scope.
+This adapts **[stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks)**, retaining its simulation, flexible spines, ASCII rasterizer and lighting. The whale shape, DSH integration, palettes and controls are adaptations. See [source attribution](THIRD_PARTY_NOTICES.md) for the pinned commit and credits.
 
 ```sh
 npm ci --legacy-peer-deps
@@ -77,4 +73,4 @@ npm run check
 npm pack
 ```
 
-The bundled animation needs no CDN, model calls or chat content. See [development](docs/development.md) and [validation](docs/validation.md). The scoped DOM adapter may need updates when DSH changes. Composer themes can conflict; disable this plugin's glass if necessary. Desktop window validation is separate from Web validation.
+Animation and fonts are bundled for offline loading. See [development and recording](docs/development.md) and [test results](docs/validation.md).

@@ -10,8 +10,6 @@
 
 ## 安装
 
-当前 `main` 为 **0.1.1 开发版**，包含汉字、内置字体与本机选字功能；npm 暂保留 **0.1.0**，尚未发布本轮更新。
-
 在 DeepSeek Harness 的插件管理中添加 npm 包 **`dsh-ascii-whales`**，完成后重启相应实例。
 
 Web CLI 用户也可使用：
@@ -22,7 +20,7 @@ dsh plugin --profile web add dsh-ascii-whales
 
 将 `web` 换成目标 Web profile。Desktop 请通过客户端插件管理安装。
 
-已验证宿主：**DSH 0.2.1-rc.2、Windows / Microsoft Edge Web**。插件默认启用，配置入口为 **设置 → ASCII 鲸鱼**。
+插件默认启用，配置入口为 **设置 → ASCII 鲸鱼**。
 
 ## 一片海，两种光
 
@@ -40,9 +38,9 @@ dsh plugin --profile web add dsh-ascii-whales
 
 也可以让汉字入海：**设置 → ASCII 鲸鱼 → 字符风格 → 汉字**。吻部落“吻”，眼睛落“目”，背部落“背”，胸鳍与背鳍落“鳍”，尾鳍落“尾”；其余鲸身由水、海、潮、鲸等字铺开，小鱼化作鱼字旁的游字。字随身体弯曲转向，汉字栅格更宽，也能用“字符栅格”继续调节。
 
-英文默认内置 **Geist Mono 600**，与原项目演示一致；汉字默认内置 **思源宋体**。两套字体只用于动画，随插件离线加载。切换“字体 → 本机自定义”，可分别填写已安装的中英文字体名称，例如 `Consolas`、`方正屏显雅宋简体`；留空或字体不可用时回退到内置字体。本机字体文件不会被上传或打包。
+英文默认内置 **Geist Mono 600**，与原项目演示一致；汉字默认内置 **思源宋体**。两套字体用于动画，随插件离线加载。切换“字体 → 本机自定义”，可分别填写已安装的中英文字体名称，例如 `Consolas`、`方正屏显雅宋简体`。
 
-点击 **扫描本机字体** 后，可从官方下拉菜单中选择；首次扫描需允许浏览器访问字体。暂不支持扫描的浏览器仍可手动填写。
+点击 **扫描本机字体**，允许浏览器访问字体后，即可从下拉菜单中选择，也可直接输入字体名称。
 
 ![汉字 · 浅色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-light.gif)
 ![汉字 · 深色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-dark.gif)
@@ -69,9 +67,7 @@ dsh plugin --profile web add dsh-ascii-whales
 
 默认三条鲸鱼的相对大小为 100%、70%、84%。ASCII 小鱼以短横字符呈现，汉字模式使用鱼、鲤、鲭、鲱，尺寸随字符栅格一起变化。
 
-**恢复默认** 使用 DSH 官方主按钮，随深浅主题切换，可一键回到最初的蓝色海面。偏好保存在当前浏览器，不会跨浏览器或不同 Web 地址同步。遵循系统“减少动态效果”设置，后台标签页暂停动画。很细的栅格配合大量鲸鱼或高倍速度会增加渲染开销。
-
-从 0.1.0 升级会保留已有的透明度偏好；想使用新的完整主色效果，可将动画透明度设为 **1**，或点击 **恢复默认**。
+**恢复默认** 使用 DSH 官方主按钮，随深浅主题切换，可一键回到最初的蓝色海面。偏好保存在当前浏览器。动画遵循系统“减少动态效果”设置，并在后台标签页暂停。
 
 ![可视化颜色与官方设置控件](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/settings.gif)
 
@@ -87,7 +83,7 @@ dsh plugin --profile web add dsh-ascii-whales
 
 ## 从哪里游来
 
-直接使用并改造 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks) 的源码，**不是重新仿写一套动画**。原作者完成了鱼群模拟、柔性身体、字符栅格与光影渲染；本项目在其基础上加入鲸鱼形态、DSH 集成、主题适配与可调参数。
+基于 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks) 的源码改造。原作者完成了鱼群模拟、柔性身体、字符栅格与光影渲染；本项目在其基础上加入鲸鱼形态、DSH 集成、主题适配与可调参数。
 
 固定的上游版本、改动范围与署名见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。毛玻璃实现参考了 [dsh-glass-theme](https://github.com/cnayu/dsh-glass-theme) 与 [dsh-skin-glass](https://github.com/noexcs/dsh-skin-glass) 的相关思路。
 
@@ -99,6 +95,6 @@ npm run check
 npm pack
 ```
 
-构建产物自带动画代码，不会在运行时访问上游仓库或 CDN。插件本身不读取、发送聊天内容，也不调用模型。
+动画与字体随插件一起打包，可离线加载。
 
-测试与 GIF 录制见 [docs/development.md](docs/development.md)，当前验收边界见 [docs/validation.md](docs/validation.md)。DSH 暂无公开背景插槽，插件使用局部 DOM 适配；宿主升级后可能需要跟进。其他改写输入框的主题可能产生样式冲突，可先关闭本插件的毛玻璃选项。
+测试与 GIF 录制见 [开发文档](docs/development.md)，测试结果见 [验证记录](docs/validation.md)。

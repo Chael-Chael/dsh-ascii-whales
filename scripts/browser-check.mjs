@@ -90,6 +90,9 @@ try {
     if (record) {
       await section('ASCII 鲸鱼')
       await click(page.getByRole('button', { name: mode === 'hanzi' ? '汉字' : 'ASCII', exact: true }))
+      const grid = page.getByRole('spinbutton', { name: '字符栅格（倍）', exact: true })
+      await grid.fill(mode === 'hanzi' ? '0.8' : '1'); await grid.press('Tab')
+      assert.equal(await grid.inputValue(), mode === 'hanzi' ? '0.8' : '1')
       await click(page.getByRole('switch', { name: '显示鲸鱼' }))
       await click(page.getByRole('switch', { name: '显示鲸鱼' }))
       await closeSettings()
@@ -113,10 +116,14 @@ try {
     await pause(record ? 2000 : 200)
     await screenshot(id)
     if (record) await pause(5000)
-    scenes.push({ id, start, duration: (Date.now() - epoch) / 1000 - start })
+    scenes.push({ id, glyphMode: mode, gridScale: mode === 'hanzi' ? .8 : 1, start, duration: (Date.now() - epoch) / 1000 - start })
     results.push(id + ': background, animation, native theme, input click-through PASS')
   }
   await section('ASCII 鲸鱼')
+  if (record) {
+    await click(page.getByRole('button', { name: '恢复默认', exact: true }))
+    await click(page.getByRole('button', { name: 'ASCII', exact: true }))
+  }
   if (!record) {
     await click(page.getByRole('switch', { name: '显示鲸鱼' }))
     for (const label of ['游动速度', '鲸鱼大小', '字符栅格（倍）', '尾迹强度']) {
@@ -153,17 +160,18 @@ try {
   const colorPicker = page.locator('input[type=color][aria-label="鲸鱼颜色"]')
   await click(page.getByRole('button', { name: '玫瑰粉', exact: true }))
   assert.equal(await colorPicker.inputValue(), '#ec4899')
-  await click(page.getByRole('button', { name: '汉字', exact: true }))
-  assert.equal(await page.getByRole('button', { name: '汉字', exact: true }).getAttribute('aria-pressed'), 'true')
+  const settingsMode = record ? 'ASCII' : '汉字'
+  await click(page.getByRole('button', { name: settingsMode, exact: true }))
+  assert.equal(await page.getByRole('button', { name: settingsMode, exact: true }).getAttribute('aria-pressed'), 'true')
   await colorPicker.fill('#ec4899')
   assert.equal(await colorPicker.inputValue(), '#ec4899')
   await screenshot('settings-dark')
   if (record) await pause(2500)
   await closeSettings(); await pause(record ? 2500 : 100)
-  scenes.push({ id: 'settings', start, duration: (Date.now() - epoch) / 1000 - start })
+  scenes.push({ id: 'settings', glyphMode: record ? 'ascii' : 'hanzi', start, duration: (Date.now() - epoch) / 1000 - start })
   if (record) {
     await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认', exact: true }))
-    await click(page.getByRole('button', { name: '汉字', exact: true }))
+    assert.equal(await page.getByRole('button', { name: 'ASCII', exact: true }).getAttribute('aria-pressed'), 'true')
     const start = (Date.now() - epoch) / 1000
     await hint('内置双语字体 · 也可扫描并选择本机字体')
     await click(page.getByRole('button', { name: '本机自定义', exact: true }))
@@ -175,7 +183,7 @@ try {
     await click(page.getByRole('menuitem', { name: 'SimSun', exact: true }))
     await screenshot('fonts-dark'); await pause(1500)
     await click(page.getByRole('button', { name: '内置默认', exact: true })); await closeSettings(); await pause(1500)
-    scenes.push({ id: 'fonts', start, duration: (Date.now() - epoch) / 1000 - start })
+    scenes.push({ id: 'fonts', glyphMode: 'ascii', gridScale: 1, start, duration: (Date.now() - epoch) / 1000 - start })
   }
   if (!record) {
     await page.reload(); await canvas.waitFor({ state: 'visible' })

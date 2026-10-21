@@ -1,6 +1,6 @@
-# 0.1.1 development candidate · 2026-10-21
+# 0.1.1 validation · 2026-10-21
 
-Selected-color midtones, anatomical Hanzi, bundled/local fonts and expanded controls. This update is available from the GitHub source; npm publication remains deferred at the user's request.
+Selected-color midtones, anatomical Hanzi, bundled/local fonts and expanded controls. npm publication is handled by the maintainer.
 
 Tested local tarball: `dsh-ascii-whales@0.1.1`, SHA-1 `3dfec22ebdac3f58a77465b171657e08656debaf`. Installed client SHA-256: `E51C0928CDFAB4FD48B25D8070445A4DF8E5D69136978D3872A7800DCB758468`.
 
@@ -12,8 +12,8 @@ Tested local tarball: `dsh-ascii-whales@0.1.1`, SHA-1 `3dfec22ebdac3f58a77465b17
 | Bundled/local fonts | PASS | Embedded Geist Mono 600 and Source Han Serif load offline; real font enumeration returns 903 faces / 342 families on this machine; local Founder font selection and missing-name fallback verified through browser platform-font inspection |
 | Official settings controls | PASS | Gray toolbar scan/arrow buttons, official SVG chevron and primary reset; reset is dark in light mode and white in dark mode |
 | Fresh package installation | PASS | Installed the tarball into an isolated profile; client and both OFL files match the build; demo loads this installed candidate |
-| Public recordings | PASS | Six real Web GIFs: ASCII light/dark, Hanzi light/dark, settings and local font picker; 960×600, 15 fps; zero page errors |
-| Published npm 0.1.1 | NOT_RUN | Publication deferred; npm remains on 0.1.0 |
+| Public recordings | PASS | Six real Web GIFs: ASCII light/dark, Hanzi light/dark at 0.8× grid, settings and local font picker in ASCII mode; 960×600, 15 fps; zero page errors |
+| Published npm 0.1.1 | NOT_RUN | Registry installation not tested in this run; publication is handled by the maintainer |
 | Desktop / other browsers | NOT_RUN | No Desktop profile change or restart; no cross-browser claim |
 
 Public recordings use the separate synthetic-data demo environment; private QA captures and token-bearing logs stay under ignored `.local/`. Fine grids combined with many whales or high speeds can be expensive; no frame-rate guarantee is made for those extremes. The native operating-system color-picker popup is not automated.

@@ -11,33 +11,44 @@
   "scenes": [
     {
       "id": "light",
-      "start": 12.268,
-      "duration": 7.181000000000001
+      "glyphMode": "ascii",
+      "gridScale": 1,
+      "start": 13.218,
+      "duration": 7.196999999999999
     },
     {
       "id": "dark",
-      "start": 25.811,
-      "duration": 7.182000000000002
+      "glyphMode": "ascii",
+      "gridScale": 1,
+      "start": 28.337,
+      "duration": 7.254000000000001
     },
     {
       "id": "hanzi-light",
-      "start": 38.834,
-      "duration": 7.163999999999994
+      "glyphMode": "hanzi",
+      "gridScale": 0.8,
+      "start": 42.675,
+      "duration": 7.169000000000004
     },
     {
       "id": "hanzi-dark",
-      "start": 51.276,
-      "duration": 7.165999999999997
+      "glyphMode": "hanzi",
+      "gridScale": 0.8,
+      "start": 55.298,
+      "duration": 7.2280000000000015
     },
     {
       "id": "settings",
-      "start": 59.576,
-      "duration": 10.110000000000007
+      "glyphMode": "ascii",
+      "start": 65.079,
+      "duration": 12.39500000000001
     },
     {
       "id": "fonts",
-      "start": 71.609,
-      "duration": 6.233000000000004
+      "glyphMode": "ascii",
+      "gridScale": 1,
+      "start": 79.367,
+      "duration": 8.34599999999999
     }
   ],
   "results": [

@@ -1,0 +1,62 @@
+{
+  "name": "dsh-ascii-whales",
+  "version": "0.1.0",
+  "description": "Let whales drift through the quiet. An ASCII ocean and neutral frosted glass for DeepSeek Harness.",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": ["dsh-plugin", "deepseek-harness", "deepseek", "ascii", "whales", "theme"],
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chael-Chael/dsh-ascii-whales.git"
+  },
+  "exports": {
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    ".": "./lib/index.js"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/dsh-client-locale": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "^0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
+    "@types/react": "^18.3.0",
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.1.0",
+    "react": "^18.2.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "lib/index.js"
+}

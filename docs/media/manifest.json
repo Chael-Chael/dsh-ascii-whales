@@ -1,0 +1,33 @@
+{
+  "viewport": [
+    1280,
+    800
+  ],
+  "gif": [
+    960,
+    600
+  ],
+  "fps": 15,
+  "scenes": [
+    {
+      "id": "light",
+      "start": 9.784,
+      "duration": 7.2170000000000005
+    },
+    {
+      "id": "dark",
+      "start": 20.117,
+      "duration": 7.262999999999998
+    },
+    {
+      "id": "settings",
+      "start": 28.731,
+      "duration": 11.049999999999997
+    }
+  ],
+  "results": [
+    "light: background, animation, native theme, input click-through PASS",
+    "dark: background, animation, native theme, input click-through PASS",
+    "browser page errors: 0"
+  ]
+}

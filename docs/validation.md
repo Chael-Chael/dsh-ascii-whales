@@ -1,4 +1,26 @@
-# 0.1.0 validation · 2026-10-21
+# 0.1.1 development candidate · 2026-10-21
+
+Selected-color midtones, anatomical Hanzi, bundled/local fonts and expanded controls. This update is available from the GitHub source; npm publication remains deferred at the user's request.
+
+Tested local tarball: `dsh-ascii-whales@0.1.1`, SHA-1 `3dfec22ebdac3f58a77465b171657e08656debaf`. Installed client SHA-256: `E51C0928CDFAB4FD48B25D8070445A4DF8E5D69136978D3872A7800DCB758468`.
+
+| Layer | Result | Evidence |
+| --- | --- | --- |
+| TypeScript, build, unit checks | PASS | `npm run check`, 6 tests; midtones in both themes, anatomical glyphs at three headings, fine/coarse cells, 20 whales, 1000 fish, simulation speed 0.1/1/10 and disposal |
+| Real Agent Web | PASS | Windows / Edge, isolated `agent-browser-test`; ASCII/Hanzi in light/dark, settings persistence, reset, draft editing, existing/new chat, reduced motion and 640 px layout; zero page errors |
+| Piecewise numeric steps | PASS | Size/grid/speed: 0.1–10; wake: 0–10. Actual keyboard and native spinner checks cover `0.95 ↔ 1 ↔ 1.1`, lower/upper bounds and manually typing 0.9 |
+| Bundled/local fonts | PASS | Embedded Geist Mono 600 and Source Han Serif load offline; real font enumeration returns 903 faces / 342 families on this machine; local Founder font selection and missing-name fallback verified through browser platform-font inspection |
+| Official settings controls | PASS | Gray toolbar scan/arrow buttons, official SVG chevron and primary reset; reset is dark in light mode and white in dark mode |
+| Fresh package installation | PASS | Installed the tarball into an isolated profile; client and both OFL files match the build; demo loads this installed candidate |
+| Public recordings | PASS | Six real Web GIFs: ASCII light/dark, Hanzi light/dark, settings and local font picker; 960×600, 15 fps; zero page errors |
+| Published npm 0.1.1 | NOT_RUN | Publication deferred; npm remains on 0.1.0 |
+| Desktop / other browsers | NOT_RUN | No Desktop profile change or restart; no cross-browser claim |
+
+Public recordings use the separate synthetic-data demo environment; private QA captures and token-bearing logs stay under ignored `.local/`. Fine grids combined with many whales or high speeds can be expensive; no frame-rate guarantee is made for those extremes. The native operating-system color-picker popup is not automated.
+
+The report below is historical evidence for 0.1.0, not a substitute for the checks above.
+
+# Published 0.1.0 validation · 2026-10-21
 
 Candidate: `dsh-ascii-whales@0.1.0`, package SHA-1 `d88efd052565962907247b274883ec66691b5201`.
 

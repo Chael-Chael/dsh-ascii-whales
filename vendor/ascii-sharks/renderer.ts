@@ -25,11 +25,10 @@ const WAKE = DOT_RGB.length - 1;
 
 // Sparse glyphs on bright skin, dense glyphs in shadow, so the texture
 // reinforces the shading instead of fighting it.
-const SKIN_RAMP = ":;t%SX8#@";
-const FIN_GLYPHS = "%;tS:";
-const RIDGE_GLYPHS = "@8%";
-const EDGE_HEAVY = ":;";
-const EDGE_LIGHT = ".',`";
+const GLYPHS = {
+  ascii: { skin: ":;t%SX8#@", fin: "%;tS:", ridge: "@8%", edgeHeavy: ":;", edgeLight: ".',`", mark: "#%@", eye: "o", fish: "-" },
+  hanzi: { skin: "水川汐沙浪海潮鲸深", fin: "鳍", ridge: "鳍", edgeHeavy: "丿丨", edgeLight: "丶一", mark: "鲸海潮", eye: "目", fish: "鱼鲤鲭鲱" },
+};
 
 
 const FLAG_BODY = 1;
@@ -39,7 +38,6 @@ const FLAG_RIDGE = 4;
 const FLAG_EYE = 5;
 /** Dark skin markings: tiger bars, zebra-shark spots. */
 const FLAG_MARK = 6;
-const MARK_GLYPHS = "#%@";
 
 // Sub-cell sample offsets for anti-aliased silhouettes.
 const SUBSAMPLES = [0.25, 0.3, 0.75, 0.3, 0.25, 0.72, 0.75, 0.72];
@@ -308,6 +306,7 @@ export class AsciiRenderer {
   private sharkKey = new Uint32Array(0);
   private sharkDepth = new Float32Array(0);
   private sharkKind = new Uint8Array(0);
+  private sharkGlyph = new Uint16Array(0);
   /** Cells darkened by a shark's shadow on the seabed. */
   private sharkShadow = new Uint8Array(0);
   private spine = new Float32Array(SHARK_NODES * 2);
@@ -331,7 +330,7 @@ export class AsciiRenderer {
   private fishBuckets: number[][] = FISH_ALPHAS.map(() => []);
   private fishStyles = FISH_ALPHAS.map((a) => `rgba(230,238,255,${a})`);
 
-  constructor(private canvas: HTMLCanvasElement, private dark = false, private gridScale = 1, private gridOpacity = .05, private wake = 1) {
+  constructor(private canvas: HTMLCanvasElement, private dark = false, private gridScale = 1, private gridOpacity = .05, private wake = 1, private glyphMode: 'ascii' | 'hanzi' = 'ascii') {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) throw new Error("2D canvas unavailable");
     this.ctx = ctx;
@@ -369,15 +368,19 @@ export class AsciiRenderer {
   }
 
   private bodyColor(level: number) {
-    return `rgb(${this.rgb.map(c => Math.round(clamp(this.dark ? c * level / 190 + level * .07 : c * .45 + level * .65, 0, 255))).join(',')})`;
+    // Anchor the upstream body's middle light level to the selected color in both themes.
+    const light = clamp((level - 120) / 120, -1, 1);
+    return `rgb(${this.rgb.map(c => Math.round(light < 0 ? c * (1 + light * .35) : c + (255 - c) * light * .25)).join(',')})`;
   }
 
   resize(width: number, height: number, dpr: number) {
     this.width = width;
     this.height = height;
     this.dpr = dpr;
-    this.cw = Math.max(6, Math.round(clamp(Math.round(width / 124), 8, 13) * this.gridScale));
-    this.ch = Math.round(this.cw * 1.45);
+    this.cw = Math.max(1, Math.round(clamp(Math.round(width / 124), 8, 13) * this.gridScale));
+    // Full-width Hanzi need room for their strokes rather than squeezed ASCII columns.
+    if (this.glyphMode === 'hanzi') this.cw = Math.round(this.cw * 1.75);
+    this.ch = Math.round(this.cw * (this.glyphMode === 'hanzi' ? 1.12 : 1.45));
     this.cols = Math.ceil(width / this.cw);
     this.rows = Math.ceil(height / this.ch);
 
@@ -400,6 +403,7 @@ export class AsciiRenderer {
     this.sharkKey = new Uint32Array(n);
     this.sharkDepth = new Float32Array(n);
     this.sharkKind = new Uint8Array(n);
+    this.sharkGlyph = new Uint16Array(n);
     this.sharkShadow = new Uint8Array(n);
     this.fishStamp = new Uint32Array(n);
 
@@ -441,7 +445,7 @@ export class AsciiRenderer {
     this.markFish(world);
     this.drawDots(t);
 
-    ctx.font = `600 ${Math.round(ch * 0.74)}px ${this.fontFamily}`;
+    ctx.font = `${this.glyphMode === 'hanzi' ? 400 : 600} ${Math.round(ch * 0.74)}px ${this.fontFamily}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
@@ -674,6 +678,7 @@ export class AsciiRenderer {
     const { sharkFlag, sharkShade, sharkKey, sharkDepth, sharkKind, sharkShadow, spine, arc, cw, ch, cols, rows } = this;
     sharkFlag.fill(0);
     sharkShadow.fill(0);
+    this.sharkGlyph.fill(0);
 
     for (const sh of sharks) {
       const L = sh.length;
@@ -683,6 +688,8 @@ export class AsciiRenderer {
       this.shape = SHAPES[sh.kind];
       this.sharkId = sh.id;
       const kindIndex = KINDS.indexOf(sh.kind);
+      const secretCells = this.glyphMode === 'hanzi' && sh.kind === 'whale' && sh.id === 1 ? [-1, -1, -1, -1] : null;
+      const secretDistances = [Infinity, Infinity, Infinity, Infinity];
 
       // Travelling body wave, growing toward the tail.
       for (let k = 0; k < N; k++) {
@@ -762,6 +769,20 @@ export class AsciiRenderer {
 
           if (centerHit && coverage >= 0.6) {
             sharkFlag[i] = flag;
+            if (this.glyphMode === 'hanzi' && sh.kind === 'whale') {
+              // s and v follow the bent spine, so anatomical labels swim with the body.
+              const glyph = flag === FLAG_EYE ? '目'
+                : flag === FLAG_FIN ? (s >= .84 ? '尾' : '鳍')
+                : flag === FLAG_RIDGE ? '鳍'
+                : s < .1 ? '吻'
+                : s < .6 && Math.abs(v) < this.shape.halfWidth(s) * L * .32 ? '背' : '';
+              this.sharkGlyph[i] = glyph ? glyph.charCodeAt(0) : 0;
+              if (secretCells && !glyph && flag === FLAG_BODY && v > 0 && s >= .28 && s < .64) {
+                const slot = Math.min(3, Math.floor((s - .28) / .09));
+                const distance = ((s - (.325 + slot * .09)) * L) ** 2 + (v - this.shape.halfWidth(s) * L * .6) ** 2;
+                if (distance < secretDistances[slot]) { secretDistances[slot] = distance; secretCells[slot] = i; }
+              }
+            } else this.sharkGlyph[i] = 0;
             const flicker = (hash3(c, r, Math.floor(t * 6)) - 0.5) * 0.06;
             sharkShade[i] = clamp(shade + flicker, 0, 1);
             const sc = c + shadowDc;
@@ -769,15 +790,21 @@ export class AsciiRenderer {
             if (sc < cols && sr < rows) sharkShadow[sr * cols + sc] = 1;
           } else {
             sharkFlag[i] = FLAG_EDGE;
+            this.sharkGlyph[i] = 0;
             sharkShade[i] = coverage;
           }
         }
+      }
+      // A quiet signature on one whale's flank; only show it when all four cells fit.
+      if (secretCells?.every(i => i >= 0)) {
+        for (let k = 0; k < 4; k++) this.sharkGlyph[secretCells[k]] = '深度求索'.charCodeAt(k);
       }
     }
   }
 
   private drawSharks(t: number) {
     const { ctx, cols, rows, cw, ch, sharkFlag, sharkShade, sharkKey, sharkDepth, sharkKind } = this;
+    const glyphs = GLYPHS[this.glyphMode];
     const n = cols * rows;
     for (let i = 0; i < n; i++) {
       const flag = sharkFlag[i];
@@ -797,13 +824,13 @@ export class AsciiRenderer {
 
       if (flag === FLAG_EDGE) {
         // Soft, anti-aliased silhouette: no block, just a light glyph.
-        const set = shade >= 0.5 ? EDGE_HEAVY : EDGE_LIGHT;
+        const set = shade >= 0.5 ? glyphs.edgeHeavy : glyphs.edgeLight;
         const g = (70 + shade * 80) * dim;
         ctx.fillStyle =
           roll < 0.07
             ? this.accents[key % this.accents.length]
             : this.bodyColor(g);
-        ctx.fillText(set[(key >>> 8) % set.length], x + cw / 2, y + ch / 2 + 1);
+        ctx.fillText(set[(key >>> 8) % set.length], x + cw / 2, y + ch / 2 + 1, Math.max(1, cw - 1));
         continue;
       }
 
@@ -811,22 +838,23 @@ export class AsciiRenderer {
       let glyph: string;
       if (flag === FLAG_RIDGE) {
         level = 226;
-        glyph = RIDGE_GLYPHS[(key >>> 8) % RIDGE_GLYPHS.length];
+        glyph = glyphs.ridge[(key >>> 8) % glyphs.ridge.length];
       } else if (flag === FLAG_EYE) {
         level = 12;
-        glyph = "o";
+        glyph = glyphs.eye;
       } else if (flag === FLAG_MARK) {
         level = 24 + shade * 22;
-        glyph = MARK_GLYPHS[(key >>> 8) % MARK_GLYPHS.length];
+        glyph = glyphs.mark[(key >>> 8) % glyphs.mark.length];
       } else if (flag === FLAG_FIN) {
         level = 40 + shade * 120;
-        glyph = FIN_GLYPHS[(key >>> 8) % FIN_GLYPHS.length];
+        glyph = glyphs.fin[(key >>> 8) % glyphs.fin.length];
       } else {
         level = 46 + shade * 160;
         const jitter = ((key >>> 4) % 3) - 1;
-        glyph = SKIN_RAMP[clamp(Math.floor((1 - shade) * 8.99) + jitter, 0, SKIN_RAMP.length - 1)];
+        glyph = glyphs.skin[clamp(Math.floor((1 - shade) * (glyphs.skin.length - .01)) + jitter, 0, glyphs.skin.length - 1)];
       }
       level *= dim;
+      if (this.sharkGlyph[i]) glyph = String.fromCharCode(this.sharkGlyph[i]);
       // Tinted per species; the classic tint is a cool blue-grey, like a back seen through deep water.
       ctx.fillStyle = this.bodyColor(level);
       ctx.fillRect(x + 1, y + 1, cw - 1, ch - 1);
@@ -838,7 +866,7 @@ export class AsciiRenderer {
       else if (roll < 0.13) color = "#ffffff";
       else color = shade > 0.55 ? "#181818" : "#eeeeee";
       ctx.fillStyle = color;
-      ctx.fillText(glyph, x + cw / 2, y + ch / 2 + 1);
+      ctx.fillText(glyph, x + cw / 2, y + ch / 2 + 1, Math.max(1, cw - 1));
     }
   }
 
@@ -868,12 +896,13 @@ export class AsciiRenderer {
 
   private drawFish() {
     const { ctx, cw, ch, cols, fishBuckets } = this;
+    const glyphs = GLYPHS[this.glyphMode].fish;
     for (let b = 0; b < fishBuckets.length; b++) {
       const bucket = fishBuckets[b];
       if (!bucket.length) continue;
       ctx.fillStyle = this.fishStyles[b];
       for (const i of bucket) {
-        ctx.fillText("-", (i % cols) * cw + cw / 2, ((i / cols) | 0) * ch + ch / 2 + 1);
+        ctx.fillText(glyphs[i % glyphs.length], (i % cols) * cw + cw / 2, ((i / cols) | 0) * ch + ch / 2 + 1, Math.max(1, cw - 1));
       }
     }
   }
@@ -886,7 +915,7 @@ export class AsciiRenderer {
       const col = i % cols;
       const row = (i / cols) | 0;
       ctx.fillStyle = `rgba(${this.rgb.join(',')},${Math.min(1, h * 1.6).toFixed(2)})`;
-      ctx.fillText(h > 0.6 ? "*" : "·", col * cw + cw / 2, row * ch + ch / 2 + 1);
+      ctx.fillText(h > 0.6 ? "*" : "·", col * cw + cw / 2, row * ch + ch / 2 + 1, Math.max(1, cw - 1));
     }
   }
 

@@ -1,5 +1,7 @@
 [
   "light: background, animation, native theme, input click-through PASS",
   "dark: background, animation, native theme, input click-through PASS",
+  "hanzi-light: background, animation, native theme, input click-through PASS",
+  "hanzi-dark: background, animation, native theme, input click-through PASS",
   "browser page errors: 0"
 ]

@@ -5,8 +5,10 @@ The animation is directly adapted from **[ascii-sharks](https://github.com/stack
 - Source commit: [`c521e24a787e6d4cc460d4cf2b9815f25e4fe453`](https://github.com/stackedlol/ascii-sharks/tree/c521e24a787e6d4cc460d4cf2b9815f25e4fe453)
 - Local source: `vendor/ascii-sharks/`
 - Retained: fixed-timestep engine, fish schooling, pursuit, flexible spines, cell rasterization, lighting, glyph shading and wake diffusion.
-- Adapted: whale geometry, transparent canvas, light/dark palettes, selected color, cell/grid/wake controls, configurable fish population and hidden-page pausing.
+- Adapted: whale geometry, transparent canvas, light/dark palettes, selected color, cell/grid/wake controls, configurable fish population, anatomical Hanzi glyphs and hidden-page pausing.
 - DSH integration, settings, neutral composer glass and demo scripts are original additions.
+
+The bundled animation font subsets derive from Geist Mono (The Geist Project Authors) and Source Han Serif (Adobe), both under SIL Open Font License 1.1. Original notices, source revisions and subset details are in [assets/fonts/README.md](assets/fonts/README.md); both OFL files are included in the npm package. No Founder font files are included.
 
 The pinned upstream snapshot does not include a separate LICENSE file. The MIT license for this project's original integration does not relicense the upstream source. Upstream authorship is preserved here and in the published bundle.
 

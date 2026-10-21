@@ -1,9 +1,16 @@
 {
   "name": "dsh-ascii-whales",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Let whales drift through the quiet. An ASCII ocean and neutral frosted glass for DeepSeek Harness.",
   "license": "SEE LICENSE IN LICENSE",
-  "keywords": ["dsh-plugin", "deepseek-harness", "deepseek", "ascii", "whales", "theme"],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "ascii",
+    "whales",
+    "theme"
+  ],
   "type": "module",
   "repository": {
     "type": "git",
@@ -20,6 +27,8 @@
     "README.en.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
+    "assets/fonts/OFL-*.txt",
+    "assets/fonts/README.md",
     "cordis.patch.yml"
   ],
   "dsh": {

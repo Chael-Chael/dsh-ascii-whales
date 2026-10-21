@@ -20,9 +20,9 @@ export class OceanEngine {
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
 
-  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe') {
+  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' = 'ascii') {
     this.world = new World(sharks, fishCount);
-    this.renderer = new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake);
+    this.renderer = new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake, glyphMode);
     this.renderer.setTheme(dark, gridOpacity, wake, color);
     this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
     this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -43,10 +43,10 @@ export class OceanEngine {
     document.addEventListener("visibilitychange", this.scheduleVisibility);
 
     this.resize();
-    // Canvas text can't trigger a webfont load; once the mono face is in, redraw.
-    document.fonts?.load(`600 16px ${getComputedStyle(canvas).fontFamily}`).then(() => {
+    // Canvas text can't trigger a webfont load; redraw the still frame when it arrives.
+    document.fonts?.load(`${glyphMode === 'hanzi' ? 400 : 600} 16px ${getComputedStyle(canvas).fontFamily}`, glyphMode === 'hanzi' ? '鲸目鳍尾' : 'S8@').then(() => {
       if (!this.disposed && this.reducedMotion.matches) this.drawStill();
-    });
+    }).catch(() => { /* Canvas keeps the system fallback if font loading is blocked. */ });
     this.schedule();
   }
 
@@ -92,12 +92,13 @@ export class OceanEngine {
     this.last = now;
     this.acc += dt * this.speed;
     let steps = 0;
-    while (this.acc >= STEP && steps < MAX_STEPS) {
+    const maxSteps = Math.ceil(MAX_STEPS * Math.max(1, this.speed));
+    while (this.acc >= STEP && steps < maxSteps) {
       this.world.step(STEP);
       this.acc -= STEP;
       steps++;
     }
-    if (steps === MAX_STEPS) this.acc = 0;
+    if (steps === maxSteps) this.acc = 0;
     this.renderer.render(this.world, dt * this.speed);
     this.raf = requestAnimationFrame(this.frame);
   };

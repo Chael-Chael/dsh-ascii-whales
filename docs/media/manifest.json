@@ -11,23 +11,40 @@
   "scenes": [
     {
       "id": "light",
-      "start": 15.704,
-      "duration": 7.247
+      "start": 12.268,
+      "duration": 7.181000000000001
     },
     {
       "id": "dark",
-      "start": 28.705,
-      "duration": 7.259
+      "start": 25.811,
+      "duration": 7.182000000000002
+    },
+    {
+      "id": "hanzi-light",
+      "start": 38.834,
+      "duration": 7.163999999999994
+    },
+    {
+      "id": "hanzi-dark",
+      "start": 51.276,
+      "duration": 7.165999999999997
     },
     {
       "id": "settings",
-      "start": 37.315,
-      "duration": 10.776000000000003
+      "start": 59.576,
+      "duration": 10.110000000000007
+    },
+    {
+      "id": "fonts",
+      "start": 71.609,
+      "duration": 6.233000000000004
     }
   ],
   "results": [
     "light: background, animation, native theme, input click-through PASS",
     "dark: background, animation, native theme, input click-through PASS",
+    "hanzi-light: background, animation, native theme, input click-through PASS",
+    "hanzi-dark: background, animation, native theme, input click-through PASS",
     "browser page errors: 0"
   ]
 }

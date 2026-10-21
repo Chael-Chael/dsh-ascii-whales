@@ -2,8 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
 import { build } from 'esbuild'
-const bundled = await build({ entryPoints: ['src/background.mjs'], bundle: true, write: false, format: 'esm' })
+const bundled = await build({ entryPoints: ['src/background.mjs'], bundle: true, write: false, format: 'esm', loader: { '.woff': 'dataurl' } })
 const { mountBackgrounds } = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'))
+const engineBundle = await build({ entryPoints: ['vendor/ascii-sharks/engine.ts'], bundle: true, write: false, format: 'esm' })
+const { OceanEngine } = await import('data:text/javascript;base64,' + Buffer.from(engineBundle.outputFiles[0].text).toString('base64'))
 import { defaults } from '../src/settings.mjs'
 
 test('scene follows hero, preference, visibility and disposal without duplicate canvases', async t => {
@@ -23,6 +25,18 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
     requestAnimationFrame: fn => { frames.set(++nextFrame, fn); return nextFrame }, cancelAnimationFrame: id => frames.delete(id),
   })) { saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key)); Object.defineProperty(globalThis, key, { configurable: true, value }) }
   t.after(() => { for (const [key, descriptor] of saved) { if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key] } dom.window.close() })
+  for (const speed of [.1, 1, 10]) {
+    const probe = win.document.createElement('canvas')
+    probe.getBoundingClientRect = () => ({ width: 100, height: 100, left: 0, top: 0 })
+    const engine = new OceanEngine(probe, [], speed, false, 1, 0, 0, 0)
+    engine.last = 0
+    for (let frame = 1; frame <= 60; frame++) {
+      frames.delete(engine.raf)
+      engine.frame(frame * 1000 / 60)
+    }
+    assert.ok(Math.abs(engine.world.time - speed) < 1 / 30, `Speed ${speed} should advance simulation proportionally`)
+    engine.destroy()
+  }
   const card = win.document.querySelector('[data-conversation-content]')
   Object.defineProperties(card, { clientWidth: { value: 1000 }, clientHeight: { value: 760 } })
   const scene = mountBackgrounds(() => settings)
@@ -32,6 +46,19 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   assert.ok(canvas); assert.equal(canvas.hidden, false); assert.equal(frames.size, 1)
   assert.equal(card.querySelectorAll('canvas').length, 1)
   assert.equal(card.hasAttribute('data-whales-glass'), true)
+  for (const glyphMode of ['hanzi', 'ascii']) {
+    settings = { ...settings, glyphMode }; scene.update(); await settle()
+    assert.equal(card.querySelectorAll('canvas').length, 1)
+    assert.equal(frames.size, 1, 'Character changes dispose the previous animation loop')
+    assert.ok(canvas.style.fontFamily.includes(glyphMode === 'hanzi' ? 'Whales Hanzi' : 'Whales Mono'))
+  }
+  settings = { ...settings, fontSource: 'local', asciiFont: 'Consolas', hanziFont: '方正屏显雅宋简体' }; scene.update(); await settle()
+  assert.match(canvas.style.fontFamily, /^"?Consolas"?,/)
+  assert.equal(frames.size, 1)
+  settings = { ...settings, glyphMode: 'hanzi' }; scene.update(); await settle()
+  assert.ok(canvas.style.fontFamily.includes('方正屏显雅宋简体'))
+  settings = { ...settings, hanziFont: '' }; scene.update(); await settle()
+  assert.ok(canvas.style.fontFamily.startsWith('"Whales Hanzi"'))
   settings = { ...settings, glass: false }; scene.update()
   assert.equal(card.hasAttribute('data-whales-glass'), false)
   card.dataset.contentPhase = 'conversation'; await settle()

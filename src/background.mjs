@@ -1,6 +1,10 @@
 import { OceanEngine } from '../vendor/ascii-sharks/engine.ts'
+import monoFont from '../assets/fonts/whales-mono.woff'
+import hanziFont from '../assets/fonts/whales-serif.woff'
 
 const styles = `
+@font-face{font-family:"Whales Mono";src:url("${monoFont}") format("woff");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Whales Hanzi";src:url("${hanziFont}") format("woff");font-style:normal;font-weight:400;font-display:swap}
 .dsh-whales-scene > [data-conversation-scroll]{position:relative;z-index:1}
 .dsh-whales-scene[data-whales-glass] [data-composer-card]{
   isolation:isolate;background:transparent;--dsw-specific-input-major:transparent;
@@ -27,7 +31,7 @@ export function mountBackgrounds(getSettings) {
     const canvas = document.createElement('canvas')
     canvas.className = 'dsh-whales-canvas'
     canvas.setAttribute('aria-hidden', 'true')
-    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;font-family:ui-monospace,Consolas,monospace;'
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;'
     const position = scene.style.position
     if (getComputedStyle(scene).position === 'static') scene.style.position = 'relative'
     scene.prepend(canvas); scene.classList.add('dsh-whales-scene')
@@ -37,17 +41,22 @@ export function mountBackgrounds(getSettings) {
       const active = settings.enabled && scene.dataset.contentPhase === 'hero'
       const dark = getComputedStyle(scene).colorScheme.includes('dark')
       canvas.hidden = !active; canvas.style.opacity = String(settings.opacity)
+      const hanzi = settings.glyphMode === 'hanzi'
+      const localFont = settings.fontSource === 'local' ? (hanzi ? settings.hanziFont : settings.asciiFont).trim() : ''
+      const fallback = hanzi ? '"Whales Hanzi", serif' : '"Whales Mono", monospace'
+      const fontFamily = localFont ? `${JSON.stringify(localFont)}, ${fallback}` : fallback
+      canvas.style.fontFamily = fontFamily; canvas.style.fontWeight = hanzi ? '400' : '600'
       scene.toggleAttribute('data-whales-glass', active && settings.glass)
       scene.toggleAttribute('data-whales-dark', dark)
       scene.style.setProperty('--whales-blur', `${settings.blur}px`)
       scene.style.setProperty('--whales-glass-opacity', String(settings.glassOpacity))
-      const nextPopulation = `${settings.count}/${settings.size}/${settings.gridScale}/${settings.fishCount}`
+      const nextPopulation = `${settings.count}/${settings.size}/${settings.gridScale}/${settings.fishCount}/${settings.glyphMode}/${fontFamily}`
       const nextAppearance = `${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}`
       if (engine && (!active || nextPopulation !== population)) { engine.destroy(); engine = undefined }
       if (!active) return
       if (!engine) {
-        const whales = Array.from({ length: settings.count }, (_, i) => ({ kind: 'whale', size: settings.size * [1, .7, .84, .77, .65, .9][i] }))
-        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color)
+        const whales = Array.from({ length: settings.count }, (_, i) => ({ kind: 'whale', size: settings.size * [1, .7, .84, .77, .65, .9][i % 6] }))
+        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color, settings.glyphMode)
         population = nextPopulation; appearance = nextAppearance
       } else if (appearance !== nextAppearance) {
         engine.setAppearance(settings.speed, dark, settings.gridOpacity, settings.wake, settings.color); appearance = nextAppearance

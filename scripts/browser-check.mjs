@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { readFileSync, mkdirSync, writeFileSync, copyFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import assert from 'node:assert/strict'
@@ -12,11 +12,16 @@ const record = process.argv.includes('--record')
 const output = resolve(record ? 'docs/media' : '.local/qa')
 const rawDir = resolve('.local/recordings')
 mkdirSync(output, { recursive: true }); mkdirSync(rawDir, { recursive: true })
-const browser = await chromium.launch({ channel: 'msedge', headless: true })
+const browser = await chromium.launch({ channel: 'msedge', headless: !process.env.DSH_HEADED })
 const errors = [], results = []
 const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'zh-CN', colorScheme: 'light',
   ...(record ? { recordVideo: { dir: rawDir, size: { width: 1280, height: 800 } } } : {}) })
 const page = await context.newPage()
+if (record) {
+  const cdp = await context.newCDPSession(page)
+  const { targetInfo } = await cdp.send('Target.getTargetInfo')
+  await cdp.send('Browser.grantPermissions', { permissions: ['localFonts'], origin: new URL(url).origin, browserContextId: targetInfo.browserContextId })
+}
 page.on('pageerror', error => errors.push(error.message))
 page.setDefaultTimeout(15000)
 const epoch = Date.now(), scenes = []
@@ -24,6 +29,7 @@ const canvas = page.locator('.dsh-whales-canvas')
 const editor = page.locator('[data-composer-input]')
 const pause = ms => page.waitForTimeout(ms)
 async function click(locator) {
+  await locator.scrollIntoViewIfNeeded()
   const box = await locator.boundingBox(); assert.ok(box)
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 12 })
   await locator.click(); await pause(200)
@@ -35,7 +41,11 @@ async function openSettings() {
   else await click(page.getByRole('button', { name: '设置', exact: true }))
 }
 async function section(name) { await openSettings(); await click(page.getByRole('button', { name, exact: true })) }
-async function closeSettings() { await click(page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: '关闭', exact: true })) }
+async function closeSettings() {
+  const dialog = page.getByRole('dialog', { name: '设置', exact: true })
+  await click(dialog.getByRole('button', { name: '关闭', exact: true }))
+  await dialog.waitFor({ state: 'hidden' })
+}
 async function theme(name) {
   await section('通用设置'); await click(page.getByRole('button', { name, exact: true })); await closeSettings()
   await pause(350)
@@ -74,16 +84,19 @@ try {
       window.addEventListener('mousedown', e => { const ring = document.createElement('div'); ring.className = 'demo-ring'; ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px'; document.body.append(ring); setTimeout(() => ring.remove(), 550) })
     })
   }
-  for (const [id, name] of [['light', '浅色'], ['dark', '深色']]) {
+  const themeScenes = [['ascii', 'light', '浅色'], ['ascii', 'dark', '深色'], ...(record ? [['hanzi', 'hanzi-light', '浅色'], ['hanzi', 'hanzi-dark', '深色']] : [])]
+  for (const [mode, id, name] of themeScenes) {
     await theme(name)
     if (record) {
       await section('ASCII 鲸鱼')
+      await click(page.getByRole('button', { name: mode === 'hanzi' ? '汉字' : 'ASCII', exact: true }))
       await click(page.getByRole('switch', { name: '显示鲸鱼' }))
       await click(page.getByRole('switch', { name: '显示鲸鱼' }))
       await closeSettings()
     }
-    assert.equal(await page.locator('html').evaluate(e => getComputedStyle(e).colorScheme), id)
+    assert.equal(await page.locator('html').evaluate(e => getComputedStyle(e).colorScheme), name === '浅色' ? 'light' : 'dark')
     assert.equal(await canvas.isVisible(), true)
+    assert.equal(await canvas.evaluate(e => getComputedStyle(e).opacity), '1', 'Default opacity preserves the selected body color')
     assert.equal(await canvas.evaluate(e => getComputedStyle(e).pointerEvents), 'none')
     const glass = await page.locator('[data-composer-card]').evaluate(e => {
       const style = getComputedStyle(e, '::before')
@@ -95,7 +108,7 @@ try {
     const box = await canvas.boundingBox(); assert.ok(box.width > 900 && box.height > 650)
     assert.notEqual(await frame(), await pause(300).then(frame), 'Whales animate')
     const start = (Date.now() - epoch) / 1000
-    await hint(name + ' · DeepSeek 蓝色鲸鱼，游过新对话背景')
+    await hint(`${mode === 'hanzi' ? '汉字' : 'ASCII'} · ${name} · 鲸群游过留白`)
     await page.mouse.move(1180, 760, { steps: 12 })
     await pause(record ? 2000 : 200)
     await screenshot(id)
@@ -104,6 +117,29 @@ try {
     results.push(id + ': background, animation, native theme, input click-through PASS')
   }
   await section('ASCII 鲸鱼')
+  if (!record) {
+    await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+    for (const label of ['游动速度', '鲸鱼大小', '字符栅格（倍）', '尾迹强度']) {
+      const input = page.getByRole('spinbutton', { name: label, exact: true })
+      await input.fill('1')
+      for (const [key, expected] of [['ArrowDown', '0.95'], ['ArrowDown', '0.9'], ['ArrowUp', '0.95'], ['ArrowUp', '1'], ['ArrowUp', '1.1'], ['ArrowDown', '1']]) {
+        await input.press(key); assert.equal(await input.inputValue(), expected, `${label} ${key}`)
+      }
+      await input.fill('0.9'); assert.equal(await input.inputValue(), '0.9', 'Typing does not get mistaken for stepping')
+      await input.fill('1'); await input.scrollIntoViewIfNeeded()
+      const box = await input.boundingBox()
+      await page.mouse.click(box.x + box.width - 10, box.y + box.height * .65)
+      assert.equal(await input.inputValue(), '0.95', `${label} native down spinner`)
+      const min = label === '尾迹强度' ? '0' : '0.1'
+      await input.fill(min); await input.press('ArrowDown'); assert.equal(await input.inputValue(), min)
+      await input.press('ArrowUp'); assert.equal(await input.inputValue(), label === '尾迹强度' ? '0.05' : '0.15')
+      await input.fill('10'); await input.press('ArrowUp'); assert.equal(await input.inputValue(), '10')
+      await input.press('ArrowDown'); assert.equal(await input.inputValue(), '9.9')
+      await input.fill('1')
+    }
+    await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+    results.push('size, grid, speed and wake: 0.05/0.1 steps, 1 boundary, native spinner, manual typing and bounds PASS')
+  }
   const start = (Date.now() - epoch) / 1000
   await hint('官方设置控件 · 鲸鱼动画与中性毛玻璃')
   const changes = [['鲸鱼数量', '2'], ['游动速度', '0.7'], ['鲸鱼大小', '0.8'], ['透明度', '0.6'], ['字符栅格（倍）', '1.5'], ['底纹网格透明度', '0'], ['小鱼数量', '80'], ['尾迹强度', '2'], ['玻璃模糊（px）', '20'], ['玻璃不透明度', '0.3']]
@@ -113,21 +149,40 @@ try {
     assert.equal(await input.inputValue(), value)
   }
   const reset = page.getByRole('button', { name: '恢复默认' })
-  assert.equal(await reset.evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(17, 17, 17)')
+  assert.ok(Number((await reset.evaluate(e => getComputedStyle(e).backgroundColor)).match(/\d+/)[0]) > 200, 'Official primary reset is light in dark mode')
   const colorPicker = page.locator('input[type=color][aria-label="鲸鱼颜色"]')
   await click(page.getByRole('button', { name: '玫瑰粉', exact: true }))
   assert.equal(await colorPicker.inputValue(), '#ec4899')
+  await click(page.getByRole('button', { name: '汉字', exact: true }))
+  assert.equal(await page.getByRole('button', { name: '汉字', exact: true }).getAttribute('aria-pressed'), 'true')
   await colorPicker.fill('#ec4899')
   assert.equal(await colorPicker.inputValue(), '#ec4899')
   await screenshot('settings-dark')
   if (record) await pause(2500)
   await closeSettings(); await pause(record ? 2500 : 100)
   scenes.push({ id: 'settings', start, duration: (Date.now() - epoch) / 1000 - start })
+  if (record) {
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认', exact: true }))
+    await click(page.getByRole('button', { name: '汉字', exact: true }))
+    const start = (Date.now() - epoch) / 1000
+    await hint('内置双语字体 · 也可扫描并选择本机字体')
+    await click(page.getByRole('button', { name: '本机自定义', exact: true }))
+    await click(page.getByRole('button', { name: '扫描本机字体', exact: true }))
+    await page.getByRole('button', { name: '选择英文字体', exact: true }).waitFor()
+    await click(page.getByRole('button', { name: '选择英文字体', exact: true }))
+    await click(page.getByRole('menuitem', { name: 'Consolas', exact: true }))
+    await click(page.getByRole('button', { name: '选择中文字体', exact: true }))
+    await click(page.getByRole('menuitem', { name: 'SimSun', exact: true }))
+    await screenshot('fonts-dark'); await pause(1500)
+    await click(page.getByRole('button', { name: '内置默认', exact: true })); await closeSettings(); await pause(1500)
+    scenes.push({ id: 'fonts', start, duration: (Date.now() - epoch) / 1000 - start })
+  }
   if (!record) {
     await page.reload(); await canvas.waitFor({ state: 'visible' })
     await section('ASCII 鲸鱼')
     for (const [label, value] of changes) assert.equal(await page.getByRole('spinbutton', { name: label, exact: true }).inputValue(), value)
     assert.equal(await colorPicker.inputValue(), '#ec4899')
+    assert.equal(await page.getByRole('button', { name: '汉字', exact: true }).getAttribute('aria-pressed'), 'true', 'Hanzi selection persists')
     await click(page.getByRole('switch', { name: '毛玻璃输入框' }))
     assert.equal(await page.locator('[data-whales-glass]').count(), 0)
     await click(page.getByRole('switch', { name: '毛玻璃输入框' }))
@@ -137,6 +192,39 @@ try {
     await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认' })); await closeSettings()
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dsh-ascii-whales:v1')).color), '#4d6bfe')
     assert.equal(await canvas.isVisible(), true)
+    await section('ASCII 鲸鱼')
+    assert.equal(await page.getByRole('button', { name: 'ASCII', exact: true }).getAttribute('aria-pressed'), 'true', 'Reset restores ASCII')
+    await click(page.getByRole('button', { name: '汉字', exact: true })); await closeSettings()
+    for (const [id, label] of [['light', '浅色'], ['dark', '深色']]) {
+      await theme(label)
+      assert.equal(await canvas.count(), 1)
+      assert.notEqual(await frame(), await pause(300).then(frame), 'Hanzi animate in both themes')
+      await page.locator('[data-conversation-content]').screenshot({ path: join(output, `hanzi-${id}.png`) })
+    }
+    results.push('Hanzi selection, reload persistence, reset, both themes and animation PASS')
+    const fontFaces = await page.evaluate(async () => {
+      await document.fonts.ready
+      return [...document.fonts].filter(f => f.family.startsWith('Whales')).map(f => ({ family: f.family, status: f.status }))
+    })
+    for (const family of ['Whales Mono', 'Whales Hanzi']) assert.ok(fontFaces.some(f => f.family === family && f.status === 'loaded'), `${family} must load from the package`)
+    assert.match(await canvas.evaluate(c => c.getContext('2d').font), /Whales Hanzi/)
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '本机自定义', exact: true }))
+    await page.getByRole('textbox', { name: '英文字体名称', exact: true }).fill('Consolas')
+    await page.getByRole('textbox', { name: '中文字体名称', exact: true }).fill('方正屏显雅宋简体')
+    await closeSettings(); await page.reload(); await canvas.waitFor({ state: 'visible' })
+    await section('ASCII 鲸鱼')
+    assert.equal(await page.getByRole('textbox', { name: '英文字体名称', exact: true }).inputValue(), 'Consolas')
+    assert.equal(await page.getByRole('textbox', { name: '中文字体名称', exact: true }).inputValue(), '方正屏显雅宋简体')
+    await closeSettings(); await pause(200)
+    assert.match(await canvas.evaluate(c => c.getContext('2d').font), /方正屏显雅宋简体/)
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: 'ASCII', exact: true })); await closeSettings(); await pause(200)
+    assert.match(await canvas.evaluate(c => c.getContext('2d').font), /Consolas/)
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '汉字', exact: true }))
+    await page.getByRole('textbox', { name: '中文字体名称', exact: true }).fill('')
+    await closeSettings(); await pause(200)
+    assert.match(await canvas.evaluate(c => c.getContext('2d').font), /^[^,]+Whales Hanzi/)
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '内置默认', exact: true })); await closeSettings()
+    results.push('bundled offline fonts loaded, separate local fonts, reload persistence, blank fallback PASS')
     await editor.fill('只测试输入，不发送'); assert.equal(await editor.innerText(), '只测试输入，不发送')
     assert.equal(await canvas.isVisible(), true, 'Background remains behind the draft')
     await editor.fill('')
@@ -161,7 +249,7 @@ try {
     assert.equal(await canvas.count(), 1); assert.equal(await canvas.isVisible(), true)
     assert.ok(await canvas.evaluate(c => c.width > 0 && c.width < 650))
     await screenshot('narrow'); await page.setViewportSize({ width: 1280, height: 800 })
-    results.push('all 13 settings, persistence, neutral glass, black reset, menu position, disable, reset, draft editing, reduced motion, resize PASS')
+    results.push('all settings, persistence, neutral glass, official primary reset, menu position, disable, reset, draft editing, reduced motion, resize PASS')
   }
   await theme('浅色'); await section('ASCII 鲸鱼')
   await click(page.getByRole('button', { name: '恢复默认' })); await screenshot('settings-light'); await closeSettings()
@@ -171,12 +259,14 @@ try {
   const raw = record ? await page.video().path() : null
   await context.close()
   if (record) {
+    writeFileSync(join(rawDir, 'capture.json'), JSON.stringify({ raw, scenes, results }, null, 2) + '\n')
     for (const scene of scenes) {
-      const mp4 = join(rawDir, scene.id + '.mp4'), gif = join(output, scene.id + '.gif')
+      const mp4 = join(rawDir, scene.id + '.mp4'), gif = join(rawDir, scene.id + '.gif')
       execFileSync('ffmpeg', ['-y', '-ss', String(scene.start), '-i', raw, '-t', String(scene.duration), '-an', '-c:v', 'libx264', '-crf', '18', '-pix_fmt', 'yuv420p', mp4], { stdio: 'pipe' })
       execFileSync('ffmpeg', ['-y', '-i', mp4, '-filter_complex', 'fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4', '-loop', '0', gif], { stdio: 'pipe' })
       const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'quiet', '-show_format', '-show_streams', '-of', 'json', gif], { encoding: 'utf8' }))
       assert.equal(probe.streams[0].width, 960); assert.ok(Number(probe.format.duration) > 5)
+      copyFileSync(gif, join(output, scene.id + '.gif'))
     }
     writeFileSync(join(output, 'manifest.json'), JSON.stringify({ viewport: [1280, 800], gif: [960, 600], fps: 15, scenes, results }, null, 2) + '\n')
   }

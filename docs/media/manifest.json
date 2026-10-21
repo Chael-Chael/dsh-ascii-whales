@@ -11,18 +11,18 @@
   "scenes": [
     {
       "id": "light",
-      "start": 9.784,
-      "duration": 7.2170000000000005
+      "start": 15.704,
+      "duration": 7.247
     },
     {
       "id": "dark",
-      "start": 20.117,
-      "duration": 7.262999999999998
+      "start": 28.705,
+      "duration": 7.259
     },
     {
       "id": "settings",
-      "start": 28.731,
-      "duration": 11.049999999999997
+      "start": 37.315,
+      "duration": 10.776000000000003
     }
   ],
   "results": [

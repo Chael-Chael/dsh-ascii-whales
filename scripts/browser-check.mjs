@@ -76,6 +76,12 @@ try {
   }
   for (const [id, name] of [['light', '浅色'], ['dark', '深色']]) {
     await theme(name)
+    if (record) {
+      await section('ASCII 鲸鱼')
+      await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+      await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+      await closeSettings()
+    }
     assert.equal(await page.locator('html').evaluate(e => getComputedStyle(e).colorScheme), id)
     assert.equal(await canvas.isVisible(), true)
     assert.equal(await canvas.evaluate(e => getComputedStyle(e).pointerEvents), 'none')
@@ -91,8 +97,9 @@ try {
     const start = (Date.now() - epoch) / 1000
     await hint(name + ' · DeepSeek 蓝色鲸鱼，游过新对话背景')
     await page.mouse.move(1180, 760, { steps: 12 })
-    await pause(record ? 7000 : 200)
+    await pause(record ? 2000 : 200)
     await screenshot(id)
+    if (record) await pause(5000)
     scenes.push({ id, start, duration: (Date.now() - epoch) / 1000 - start })
     results.push(id + ': background, animation, native theme, input click-through PASS')
   }

@@ -13,6 +13,7 @@ Candidate: `dsh-ascii-whales@0.1.0`, package SHA-1 `d88efd052565962907247b274883
 | Motion and layout | PASS | Reduced-motion still frame, resumed animation, 640 px resize |
 | Packaged installation | PASS | `dsh plugin --profile web add <tgz>` in a fresh isolated home; bundle auto-registration |
 | Packaged demo | PASS | Recording environment loads the installed tarball; real light/dark/settings captures |
+| Public npm install | PASS | Fresh profile installed `dsh-ascii-whales@0.1.0` from the registry; client SHA-256 matches the tested package |
 | Desktop window | NOT_RUN | Desktop profile was not changed or restarted |
 | Other browsers / other composer themes | NOT_RUN | No cross-browser or third-party theme compatibility claim |
 

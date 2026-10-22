@@ -12,57 +12,74 @@
     {
       "id": "light",
       "glyphMode": "ascii",
-      "gridScale": 1,
-      "start": 16.55,
-      "duration": 7.257999999999999
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 18.031,
+      "duration": 7.4510000000000005
     },
     {
       "id": "dark",
       "glyphMode": "ascii",
-      "gridScale": 1,
-      "start": 30.702,
-      "duration": 7.224999999999998
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 40.394,
+      "duration": 7.530000000000001
     },
     {
       "id": "hanzi-light",
       "glyphMode": "hanzi",
+      "speed": 0.65,
       "gridScale": 0.8,
-      "start": 45.37,
-      "duration": 7.225000000000001
+      "size": 1.2,
+      "start": 58.872,
+      "duration": 7.385000000000005
     },
     {
       "id": "hanzi-dark",
       "glyphMode": "hanzi",
+      "speed": 0.65,
       "gridScale": 0.8,
-      "start": 61.643,
-      "duration": 7.274000000000001
+      "size": 1.2,
+      "start": 77.483,
+      "duration": 7.438999999999993
     },
     {
       "id": "kanji-light",
       "glyphMode": "kanji",
-      "gridScale": 1,
-      "start": 76.686,
-      "duration": 7.253999999999991
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 96.101,
+      "duration": 7.659000000000006
     },
     {
       "id": "kanji-dark",
       "glyphMode": "kanji",
-      "gridScale": 1,
-      "start": 90.985,
-      "duration": 7.233000000000004
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 114.026,
+      "duration": 7.609000000000009
     },
     {
       "id": "settings",
       "glyphMode": "ascii",
-      "start": 100.982,
-      "duration": 13.433000000000007
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 125.272,
+      "duration": 13.850999999999985
     },
     {
       "id": "fonts",
       "glyphMode": "ascii",
-      "gridScale": 1,
-      "start": 116.316,
-      "duration": 9.38199999999999
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 142.349,
+      "duration": 12.590000000000003
     },
     {
       "id": "species",
@@ -74,8 +91,11 @@
         "ascii",
         "kanji"
       ],
-      "start": 131.885,
-      "duration": 22.225000000000023
+      "speed": 0.65,
+      "gridScale": 0.8,
+      "size": 1.2,
+      "start": 164.722,
+      "duration": 24.897999999999996
     }
   ],
   "results": [
@@ -86,6 +106,7 @@
     "kanji-light: background, animation, native theme, input click-through PASS",
     "kanji-dark: background, animation, native theme, input click-through PASS",
     "species: Humpback → Orca, ASCII → Kanji, saved selection PASS",
-    "browser page errors: 0"
+    "browser page errors: 0",
+    "all recordings: speed 0.65, size 1.2, grid 0.8; reset verified PASS"
   ]
 }

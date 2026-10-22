@@ -52,10 +52,10 @@ Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded he
 | Colorful shimmer | Off | ASCII / Hanzi: selected-color shades by default; enable the original seven-color glyph accents. Body color is unchanged. Not applicable to Kanji |
 | Whale color | `#4d6bfe` | Visual swatches and system color picker; fish and wakes follow |
 | Whales | 3 | 1–20 |
-| Size | 1× | 0.1–10× |
-| Speed | 1× | 0.1–10× |
+| Size | 1.2× | 0.1–10× |
+| Speed | 0.65× | 0.1–10× |
 | Scene opacity | 1 | 0–1; 1 is fully opaque |
-| Cell size | 1× | 0.1–10× |
+| Cell size | 0.8× | 0.1–10× |
 | Background grid opacity | 0.05 | 0–1 |
 | Small fish | 170 | 0–1000 |
 | Wake intensity | 1 | 0–10 |
@@ -91,8 +91,10 @@ Animation and fonts are bundled for offline loading. See [development and record
 
 ## Kanji
 
-Choose **Character style → Kanji** for the MIT-licensed [ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks) simulation, adapted to whales: schools, ink-measured shading and feeding text effects. Existing population, size, speed, color, grid, wake and font controls apply. Cells have a 4 px minimum (about 0.22×; lower settings use the same cell size). Kanji uses the Chinese font field; the English font field applies only to ASCII. Fonts are bundled for offline use; both whale styles remain available.
+Choose **Character style → Kanji** for the MIT-licensed [ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks) simulation, adapted to whales: schools, ink-measured shading and feeding text effects. Existing population, size, speed, color, grid, wake and font controls apply. Cells have a 4 px minimum (lower settings stop shrinking at this limit). Kanji uses the Chinese font field; the English font field applies only to ASCII. Fonts are bundled for offline use; both whale styles remain available.
 
 All three styles support visibility, count, size, speed, opacity, cell size, grid opacity, small fish count, wake intensity, color, fonts and the glass toggle/blur/opacity. Color affects bodies, fish and wakes; eye backgrounds follow body shading by default, with optional black or white. Kanji glints and sound effects retain theme accents. The first three whales use relative sizes of 100%, 70% and 84%.
 
 Kanji shares the stackedlol/ascii-sharks simulation, pursuit, turning and body wave with ASCII / Hanzi, retaining the whale silhouette with Kanji shading and text effects.
+
+Character cells use comparable areas across styles: ASCII retains narrow cells, while Hanzi and Kanji share square cells that respond to canvas width. The same multiplier gives similar grain density; full-width cells retain a 4 px minimum.

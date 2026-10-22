@@ -7,6 +7,7 @@
  * the part they sit on (目 eye, 鰭 fins, 尾 tail). Partly covered
  * cells become a single brush stroke following the outline (一 丨 ノ 丶).
  */
+import { cellSize } from "../ascii-sharks/cells.ts";
 import { EAT, GlyphAtlas, InkRamp, PART, SFX, SPARK, STROKE, WAKE } from "./glyphs.js";
 import { SHARK_NODES as SPINE } from "../ascii-sharks/world.ts";
 import { humpback, orca, orcaPatch, orcaFlipper, humpbackFlipper, whaleFlukes } from "../ascii-sharks/whales.ts";
@@ -62,7 +63,7 @@ export class Painter {
     this.shape = humpback;
     this.gridScale = gridScale;
     // shortcut: keep cells at least 4 px for legibility and raster cost; revisit for finer grids.
-    this.cell = Math.max(4, 18 * gridScale);
+    this.cell = cellSize(0, gridScale, true)[0];
     this.wake = 1;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: true });
@@ -112,7 +113,7 @@ export class Painter {
   }
 
   resize(width, height, dpr) {
-    const cell = Math.max(4, 18 * this.gridScale);
+    const cell = cellSize(width, this.gridScale, true)[0];
     this.width = width;
     this.height = height;
     this.cell = cell;

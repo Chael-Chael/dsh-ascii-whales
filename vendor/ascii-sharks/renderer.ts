@@ -6,6 +6,7 @@
  *   4. sharks rasterised cell-by-cell with supersampled edges: grey blocks
  *      shaded by the light, dense glyphs, and shimmering accent colours
  */
+import { cellSize } from "./cells";
 import { clamp, hash3, smoothstep } from "./math";
 import { SHARK_NODES, type Shark, type SharkKind, type World } from "./world";
 
@@ -373,10 +374,7 @@ export class AsciiRenderer {
     this.width = width;
     this.height = height;
     this.dpr = dpr;
-    this.cw = Math.max(1, Math.round(clamp(Math.round(width / 124), 8, 13) * this.gridScale));
-    // Full-width Hanzi need room for their strokes rather than squeezed ASCII columns.
-    if (this.glyphMode === 'hanzi') this.cw = Math.round(this.cw * 1.75);
-    this.ch = Math.round(this.cw * (this.glyphMode === 'hanzi' ? 1.12 : 1.45));
+    [this.cw, this.ch] = cellSize(width, this.gridScale, this.glyphMode === 'hanzi');
     this.cols = Math.ceil(width / this.cw);
     this.rows = Math.ceil(height / this.ch);
 

@@ -1,3 +1,10 @@
+# 0.1.4 validation · 2026-10-22
+
+- Calibrated ASCII/Hanzi/Kanji cell density and changed defaults to speed 0.65, size 1.2 and grid scale 0.8. Existing saved preferences are preserved.
+- `npm run check`: typecheck, 9 tests and build pass. The compiled runtime is synced to the isolated Web demo environment.
+- Re-recorded all nine GIFs at speed 0.65 / size 1.2 / grid scale 0.8, including both themes, settings, fonts and species switching. Recording assertions and reset verification pass; browser page errors: 0. Current recording details are in `media/manifest.json` and `media/checks.json`.
+- Desktop and other browsers: NOT_RUN. Publication is verified separately through the release workflow.
+
 # 0.1.3 validation · 2026-10-22
 
 - Typecheck, build and 9 automated tests pass. Species input validation, reload settings, eye/white-patch separation, shared body waves, curved tail notches and flipper-root continuity have automated coverage.

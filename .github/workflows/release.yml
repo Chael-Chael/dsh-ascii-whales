@@ -79,5 +79,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "dist/dsh-ascii-whales-$VERSION.tgz" --clobber
           else
-            gh release create "$TAG" "dist/dsh-ascii-whales-$VERSION.tgz" --verify-tag --title "$TAG · 座头鲸与虎鲸" --notes-file "docs/releases/$VERSION.md"
+            gh release create "$TAG" "dist/dsh-ascii-whales-$VERSION.tgz" --verify-tag --title "$TAG" --notes-file "docs/releases/$VERSION.md"
           fi

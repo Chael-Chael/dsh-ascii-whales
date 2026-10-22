@@ -8,7 +8,8 @@
  * cells become a single brush stroke following the outline (一 丨 ノ 丶).
  */
 import { EAT, GlyphAtlas, InkRamp, PART, SFX, SPARK, STROKE, WAKE } from "./glyphs.js";
-import { SPECIES, SPINE } from "./ocean.js";
+import { SHARK_NODES as SPINE } from "../ascii-sharks/world.ts";
+const FISH_GLYPHS = ["鰯", "鰊", "鯵", "鯖", "鰯"];
 import { clamp, hash, inTriangle } from "./util.js";
 
 function palette(from, to, steps) {
@@ -255,8 +256,8 @@ export class Painter {
   buildSpine(sh) {
     const { spine, arc } = this;
     const n = sh.nodes;
-    const L = sh.L;
-    const beat = clamp(sh.speed / (3 * this.cell), 0.5, 1.4);
+    const L = sh.length;
+    const beat = clamp(sh.speed / 60, 0.4, 1.4);
     for (let k = 0; k < SPINE; k++) {
       const s = k / (SPINE - 1);
       const a = Math.max(0, k - 1);
@@ -266,7 +267,7 @@ export class Painter {
       const tl = Math.hypot(tx, ty) || 1;
       tx /= tl;
       ty /= tl;
-      const off = L * 0.045 * (0.15 + 0.85 * s * s) * beat * Math.sin(sh.phase - s * 5.5);
+      const off = L * 0.05 * (0.1 + 0.9 * Math.pow(s, 1.8)) * beat * Math.sin(sh.phase - s * 5.2);
       spine[k * 2] = n[k * 2] - ty * off;
       spine[k * 2 + 1] = n[k * 2 + 1] + tx * off;
     }
@@ -276,9 +277,10 @@ export class Painter {
     }
     this.arcTotal = arc[SPINE - 1] || 1;
     // Bank into turns: the inside fin tucks in, the outside one spreads.
-    const bank = clamp(sh.turn * 0.4, -0.3, 0.3);
-    this.finRight = L * 0.29 * (1 - bank);
-    this.finLeft = L * 0.29 * (1 + bank);
+    const bank = clamp(sh.turn * 0.45, -0.35, 0.35);
+    const flex = 1 + 0.06 * Math.sin(sh.phase * 0.5);
+    this.finRight = L * 0.29 * flex * (1 - bank);
+    this.finLeft = L * 0.29 * flex * (1 + bank);
   }
 
   /** One eye per side, each exactly one cell, set on the head after the body is drawn. */
@@ -294,7 +296,7 @@ export class Painter {
     const ty = (spine[k * 2 + 3] - spine[k * 2 + 1]) / seg;
     const x = spine[k * 2] + (spine[k * 2 + 2] - spine[k * 2]) * t;
     const y = spine[k * 2 + 1] + (spine[k * 2 + 3] - spine[k * 2 + 1]) * t;
-    const off = halfWidth(s) * sh.L * 0.62;
+    const off = halfWidth(s) * sh.length * 0.62;
     for (const side of [-1, 1]) {
       const i = this.cellAt(x - ty * off * side, y + tx * off * side);
       if (i >= 0 && this.stamp[i] === this.frame && this.layer[i] === LAYER_SHARK) {
@@ -305,7 +307,7 @@ export class Painter {
 
   rasterShark(sh, time) {
     const { cell, cols, rows, spine, theme, ramp } = this;
-    const L = sh.L;
+    const L = sh.length;
     this.buildSpine(sh);
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -403,7 +405,7 @@ export class Painter {
       const i = this.cellAt(f.x, f.y);
       if (i < 0) continue;
       const tone = 0.2 + 0.6 * ((f.depth - 0.5) / 0.5) + 0.35 * f.alarm;
-      this.put(i, LAYER_FISH, f.depth, SPECIES[f.species].glyph, at(theme.fish, tone));
+      this.put(i, LAYER_FISH, f.depth, FISH_GLYPHS[f.species], at(theme.fish, tone));
     }
   }
 
@@ -476,20 +478,15 @@ export class Painter {
     for (const e of ocean.events) {
       const col = Math.floor(e.x / cell);
       const row = Math.floor(e.y / cell);
-      if (e.type === "eat") {
+      if (e.kind === "eat") {
         this.addFx(col, row, EAT, 0, 0.9);
         for (const [dc, dr] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) this.addFx(col + dc, row + dr, SPARK, 0.04, 0.45);
         this.splashEnergy(e.x, e.y, 2, 0.8);
-      } else if (e.type === "chomp") {
-        // Manga sound effect just ahead of the jaws (clear of the body), kept on screen.
         const text = [...SFX.chomp];
-        const ahead = 2.5 * cell;
-        const fc = Math.floor((e.x + Math.cos(e.heading) * ahead) / cell);
-        const fr = Math.floor((e.y + Math.sin(e.heading) * ahead) / cell);
-        const start = clamp(fc - (Math.cos(e.heading) >= 0 ? 0 : text.length - 1), 0, cols - text.length);
-        const r = clamp(fr, 0, rows - 1);
+        const start = clamp(col + 1, 0, cols - text.length);
+        const r = clamp(row - 1, 0, rows - 1);
         text.forEach((ch, k) => this.addFx(start + k, r, ch, k * 0.06, 1.2));
-      } else if (e.type === "splash") {
+      } else if (e.kind === "splash") {
         const text = [...SFX.splash];
         const start = clamp(col - 1, 0, cols - text.length);
         const r = clamp(row - 2, 0, rows - 1);

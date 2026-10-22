@@ -18,4 +18,4 @@ Glass implementation research: [cnayu/dsh-glass-theme](https://github.com/cnayu/
 
 The Kanji style adapts [michikusa404/ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks), commit `7153916aebba0f34ce2d46904ad192188cdc6ceb`, copyright (c) 2026 michikusa404, under the MIT License. The complete notice is included in `vendor/ascii-kanji-sharks/LICENSE` and the npm package.
 
-Retained: ink-measured glyph shading, schools, hunting and text effects. Adapted: whale silhouette (rounded head, long flippers, broad tail flukes, no gills or pelvic fins), transparent background, shared lifecycle, configurable populations/size/color/grid/wakes, and bundled Source Han Serif instead of remote Google Fonts.
+Retained: ink-measured glyph shading and text effects. Swimming, fish schooling, pursuit, spine motion and body waves use the shared stackedlol/ascii-sharks implementation. Adapted: whale silhouette (rounded head, long flippers, broad tail flukes, no gills or pelvic fins), transparent background, shared lifecycle and movement simulation, configurable populations/size/color/grid/wakes, and bundled Source Han Serif instead of remote Google Fonts.

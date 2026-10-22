@@ -34,7 +34,7 @@ dsh plugin --profile web add dsh-ascii-whales
 
 ## 调一调你的海
 
-新增 **字符风格 → Kanji**：改编自 MIT 许可的 [ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks)，使用鲸鱼形态，保留上游鱼群、按笔画密度生成的明暗与捕食文字效果。沿用数量、大小、速度、颜色、网格、尾迹和字体设置；字符栅格最低为 4 px（约 0.22 倍，低于此值不再缩小）。Kanji（日文汉字）使用“中文字体名称”；英文字体设置仅作用于 ASCII。字体离线内置，原有 ASCII／汉字鲸鱼仍可选。
+新增 **字符风格 → Kanji**：改编自 MIT 许可的 [ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks)，使用鲸鱼形态，使用 stackedlol/ascii-sharks 的游动与鱼群模拟，保留 Kanji 上游按笔画密度生成的明暗与捕食文字效果。沿用数量、大小、速度、颜色、网格、尾迹和字体设置；字符栅格最低为 4 px（约 0.22 倍，低于此值不再缩小）。Kanji（日文汉字）使用“中文字体名称”；英文字体设置仅作用于 ASCII。字体离线内置，原有 ASCII／汉字鲸鱼仍可选。
 
 使用 DSH 官方的设置页、按钮、输入框与开关。颜色区提供可视化色块及系统选色器，选色后即时生效。
 
@@ -91,7 +91,7 @@ dsh plugin --profile web add dsh-ascii-whales
 
 基于 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks) 的源码改造。原作者完成了鱼群模拟、柔性身体、字符栅格与光影渲染；本项目在其基础上加入鲸鱼形态、DSH 集成、主题适配与可调参数。
 
-**Kanji**样式改编自 [michikusa404](https://github.com/michikusa404) 创作的 **[ascii-kanji-sharks · 漢字の海](https://github.com/michikusa404/ascii-kanji-sharks)**（MIT License，Copyright © 2026 michikusa404）。鲨鱼形态、汉字笔画密度明暗、鱼群模拟与捕食文字效果均源于该项目；本项目将形态改为鲸鱼，并负责 DSH 接入、透明背景、可调参数与离线字体适配。完整许可保留在 [vendor/ascii-kanji-sharks/LICENSE](vendor/ascii-kanji-sharks/LICENSE)。
+**Kanji**样式改编自 [michikusa404](https://github.com/michikusa404) 创作的 **[ascii-kanji-sharks · 漢字の海](https://github.com/michikusa404/ascii-kanji-sharks)**（MIT License，Copyright © 2026 michikusa404）。汉字笔画密度明暗与文字特效源于该项目；本项目将形态改为鲸鱼，并负责 DSH 接入、透明背景、可调参数与离线字体适配。完整许可保留在 [vendor/ascii-kanji-sharks/LICENSE](vendor/ascii-kanji-sharks/LICENSE)。
 
 感谢 **michikusa404** 将汉字化作海洋，也感谢 **stackedlol** 创作的字符鱼群与动画实现。感谢两位原作者公开源码，让这片海能够游进 DeepSeek Harness。
 
@@ -108,3 +108,5 @@ npm pack
 动画与字体随插件一起打包，可离线加载。
 
 测试与 GIF 录制见 [开发文档](docs/development.md)，测试结果见 [验证记录](docs/validation.md)。
+
+Kanji 的游动、追逐、转向和身体摆动与 ASCII／汉字共用 stackedlol/ascii-sharks 运动模拟；保留鲸鱼轮廓，采用 Kanji 字符明暗和文字特效。

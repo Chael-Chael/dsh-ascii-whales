@@ -29,6 +29,7 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
     const probe = win.document.createElement('canvas')
     probe.getBoundingClientRect = () => ({ width: 100, height: 100, left: 0, top: 0 })
     const engine = new OceanEngine(probe, [], speed, false, 1, 0, 0, 0, defaults.color, glyphMode)
+    assert.equal(engine.world.constructor.name, 'World', 'All styles use stackedlol movement')
     engine.last = 0
     for (let frame = 1; frame <= 60; frame++) {
       frames.delete(engine.raf)

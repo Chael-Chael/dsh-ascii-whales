@@ -1,9 +1,7 @@
 import { AsciiRenderer } from "./renderer";
 import { World, type SharkSpec } from "./world";
 
-import { Ocean } from "../ascii-kanji-sharks/ocean.js";
 import { Painter } from "../ascii-kanji-sharks/painter.js";
-import { makeRandom } from "../ascii-kanji-sharks/util.js";
 
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
@@ -13,7 +11,7 @@ const MAX_STEPS = 4;
  * pointer input, pausing off-screen, and prefers-reduced-motion.
  */
 export class OceanEngine {
-  private world: World | Ocean;
+  private world: World;
   private renderer: AsciiRenderer | Painter;
   private raf = 0;
   private last = 0;
@@ -25,7 +23,7 @@ export class OceanEngine {
   private disposed = false;
 
   constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' | 'kanji' = 'ascii', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
-    this.world = glyphMode === 'kanji' ? new Ocean(makeRandom(Math.floor(Math.random() * 1e9)), sharks?.length ?? 3, fishCount, sharks?.[0]?.size ?? 1) : new World(sharks, fishCount);
+    this.world = new World(sharks, fishCount);
     this.renderer = glyphMode === 'kanji' ? new Painter(canvas, gridScale) : new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake, glyphMode);
     if (this.renderer instanceof AsciiRenderer) this.renderer.setTheme(dark, gridOpacity, wake, color, colorfulShimmer, eyeColor);
     else this.renderer.setTheme(dark, gridOpacity, wake, color, eyeColor);
@@ -112,8 +110,7 @@ export class OceanEngine {
   };
 
   private render(dt: number) {
-    if (this.world instanceof World && this.renderer instanceof AsciiRenderer) this.renderer.render(this.world, dt);
-    else if (this.world instanceof Ocean && this.renderer instanceof Painter) this.renderer.render(this.world, dt);
+    this.renderer.render(this.world, dt);
   }
 
   /** Reduced motion: let the ecosystem settle, then show a single frame. */

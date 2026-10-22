@@ -44,12 +44,18 @@ dsh plugin --profile web add dsh-ascii-whales
 
 点击 **扫描本机字体**，允许浏览器访问字体后，即可从下拉菜单中选择，也可直接输入字体名称。
 
+![Kanji · 浅色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/kanji-light.gif)
+![Kanji · 深色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/kanji-dark.gif)
+
+![座头鲸与虎鲸切换](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/species.gif)
+
 ![汉字 · 浅色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-light.gif)
 ![汉字 · 深色](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-dark.gif)
 
 | 设置 | 默认 | 范围 / 作用 |
 | --- | --- | --- |
 | 显示海洋 | 开 | 控制整个背景与配套玻璃 |
+| 鲸鱼种类 | 座头鲸 | 座头鲸 / 虎鲸；三种字符风格均可切换并保存 |
 | 字符风格 | ASCII | ASCII / 汉字 / Kanji；即时切换并保存 |
 | 字体 | 内置默认 | 内置默认 / 本机自定义；中英文字体名称分别保存 |
 | 眼睛底色 | 跟随主色 | 控制眼睛位置的背景方块；默认沿用身体底色，可选黑色／白色，字符自动使用对比色。Kanji 默认透明，选黑／白后增加眼睛底色块 |
@@ -69,7 +75,9 @@ dsh plugin --profile web add dsh-ascii-whales
 
 大小、栅格、速度、尾迹在 1 以下以 **0.05** 为步长，从 1 起以 **0.1** 为步长；跨界为 `0.95 ↔ 1 ↔ 1.1`，也可直接输入数值。
 
-三种样式均接入显示开关、数量、大小、速度、透明度、字符栅格、网格透明度、小鱼数量、尾迹强度、颜色、字体及毛玻璃的开关／模糊／不透明度。颜色作用于身体、小鱼和尾迹；眼睛背景方块默认沿用身体底色，可单独选择黑色或白色；Kanji 的闪光与拟声文字保留主题强调色。
+座头鲸保留长胸鳍和宽尾叶；虎鲸采用更宽的圆钝头部、短圆胸鳍，以及独立于眼睛底色的白色眼斑与侧腹斑。两种鲸鱼都保留自选主色，虎鲸白斑固定为浅白色。
+
+三种样式均接入鲸鱼种类、显示开关、数量、大小、速度、透明度、字符栅格、网格透明度、小鱼数量、尾迹强度、颜色、字体及毛玻璃的开关／模糊／不透明度。颜色作用于身体、小鱼和尾迹；眼睛背景方块默认沿用身体底色，可单独选择黑色或白色；Kanji 的闪光与拟声文字保留主题强调色。
 
 默认三条鲸鱼的相对大小为 100%、70%、84%。ASCII 小鱼以短横字符呈现，汉字模式使用鱼、鲤、鲭、鲱，尺寸随字符栅格一起变化。
 

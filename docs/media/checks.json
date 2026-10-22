@@ -3,5 +3,8 @@
   "dark: background, animation, native theme, input click-through PASS",
   "hanzi-light: background, animation, native theme, input click-through PASS",
   "hanzi-dark: background, animation, native theme, input click-through PASS",
+  "kanji-light: background, animation, native theme, input click-through PASS",
+  "kanji-dark: background, animation, native theme, input click-through PASS",
+  "species: Humpback → Orca, ASCII → Kanji, saved selection PASS",
   "browser page errors: 0"
 ]

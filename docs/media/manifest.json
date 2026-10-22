@@ -13,42 +13,69 @@
       "id": "light",
       "glyphMode": "ascii",
       "gridScale": 1,
-      "start": 13.218,
-      "duration": 7.196999999999999
+      "start": 16.55,
+      "duration": 7.257999999999999
     },
     {
       "id": "dark",
       "glyphMode": "ascii",
       "gridScale": 1,
-      "start": 28.337,
-      "duration": 7.254000000000001
+      "start": 30.702,
+      "duration": 7.224999999999998
     },
     {
       "id": "hanzi-light",
       "glyphMode": "hanzi",
       "gridScale": 0.8,
-      "start": 42.675,
-      "duration": 7.169000000000004
+      "start": 45.37,
+      "duration": 7.225000000000001
     },
     {
       "id": "hanzi-dark",
       "glyphMode": "hanzi",
       "gridScale": 0.8,
-      "start": 55.298,
-      "duration": 7.2280000000000015
+      "start": 61.643,
+      "duration": 7.274000000000001
+    },
+    {
+      "id": "kanji-light",
+      "glyphMode": "kanji",
+      "gridScale": 1,
+      "start": 76.686,
+      "duration": 7.253999999999991
+    },
+    {
+      "id": "kanji-dark",
+      "glyphMode": "kanji",
+      "gridScale": 1,
+      "start": 90.985,
+      "duration": 7.233000000000004
     },
     {
       "id": "settings",
       "glyphMode": "ascii",
-      "start": 65.079,
-      "duration": 12.39500000000001
+      "start": 100.982,
+      "duration": 13.433000000000007
     },
     {
       "id": "fonts",
       "glyphMode": "ascii",
       "gridScale": 1,
-      "start": 79.367,
-      "duration": 8.34599999999999
+      "start": 116.316,
+      "duration": 9.38199999999999
+    },
+    {
+      "id": "species",
+      "species": [
+        "humpback",
+        "orca"
+      ],
+      "glyphModes": [
+        "ascii",
+        "kanji"
+      ],
+      "start": 131.885,
+      "duration": 22.225000000000023
     }
   ],
   "results": [
@@ -56,6 +83,9 @@
     "dark: background, animation, native theme, input click-through PASS",
     "hanzi-light: background, animation, native theme, input click-through PASS",
     "hanzi-dark: background, animation, native theme, input click-through PASS",
+    "kanji-light: background, animation, native theme, input click-through PASS",
+    "kanji-dark: background, animation, native theme, input click-through PASS",
+    "species: Humpback → Orca, ASCII → Kanji, saved selection PASS",
     "browser page errors: 0"
   ]
 }

@@ -1,3 +1,11 @@
+# 0.1.3 validation · 2026-10-22
+
+- Typecheck, build and 9 automated tests pass. Species input validation, reload settings, eye/white-patch separation, shared body waves, curved tail notches and flipper-root continuity have automated coverage.
+- Standalone Edge rendered both species in ASCII/Hanzi/Kanji and light/dark themes (12 combinations) without page errors.
+- Real isolated DSH Web demo verified species controls and saved selections. Nine GIFs were recorded from the current compiled runtime, including Kanji in both themes and Humpback → Orca switching. Recording assertions passed with zero page errors; timing and results are in `media/manifest.json` and `media/checks.json`.
+- GIF output: 960×600, 15 fps. Previous media and raw source recordings remain in ignored `.local/`.
+- Desktop acceptance and other browsers: NOT_RUN. Prior reports below are historical, not fresh acceptance of all features in 0.1.3.
+
 # 0.1.1 validation · 2026-10-21
 
 Selected-color midtones, anatomical Hanzi, bundled/local fonts and expanded controls. Published as [GitHub v0.1.1](https://github.com/Chael-Chael/dsh-ascii-whales/releases/tag/v0.1.1) and [npm 0.1.1](https://www.npmjs.com/package/dsh-ascii-whales/v/0.1.1).

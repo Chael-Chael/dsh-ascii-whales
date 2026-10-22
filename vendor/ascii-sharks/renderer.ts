@@ -9,6 +9,8 @@
 import { clamp, hash3, smoothstep } from "./math";
 import { SHARK_NODES, type Shark, type SharkKind, type World } from "./world";
 
+import { humpback, orca, orcaPatch, orcaFlipper, humpbackFlipper, whaleFlukes } from "./whales";
+
 const ALPHA_LEVELS = 6;
 const FISH_ALPHAS = [0.28, 0.42, 0.58, 0.74, 0.9];
 
@@ -39,6 +41,7 @@ const FLAG_RIDGE = 4;
 const FLAG_EYE = 5;
 /** Dark skin markings: tiger bars, zebra-shark spots. */
 const FLAG_MARK = 6;
+const FLAG_WHITE = 7;
 
 // Sub-cell sample offsets for anti-aliased silhouettes.
 const SUBSAMPLES = [0.25, 0.3, 0.75, 0.3, 0.25, 0.72, 0.75, 0.72];
@@ -79,18 +82,8 @@ interface SharkShape {
 
 const SHAPES: Record<SharkKind, SharkShape> = {
   // DSH adaptation: rounded whale head, broad back, long flippers and paired tail flukes.
-  whale: {
-    halfWidth: (s) => {
-      if (s < 0.12) return 0.115 * Math.pow(Math.sin(s / 0.12 * Math.PI / 2), 0.45);
-      if (s < 0.35) return 0.115 + 0.02 * Math.sin((s - 0.12) / 0.23 * Math.PI);
-      if (s < 0.87) return 0.018 + 0.097 * Math.pow(1 - (s - 0.35) / 0.52, 1.1);
-      return 0.018 * (1 - (s - 0.87) / 0.13);
-    },
-    pectoral: [0.23, 0.42, 0.58, 0.29], falcate: false,
-    pelvic: [0, 0, 0, 0], caudal: 0.22,
-    dorsal: [0.60, 0.65], secondDorsal: [0, 0],
-    eye: [0.10, 0.13], gills: [0, 0], tint: [0.45, 0.65, 1.3],
-  },
+  whale: humpback,
+  orca,
   classic: {
     halfWidth: classicHalfWidth,
     pectoral: [0.15, 0.43, 0.55, 0.26],
@@ -591,7 +584,7 @@ export class AsciiRenderer {
       }
     }
 
-    if (a <= w) {
+    if (a <= w && ((shape !== humpback && shape !== orca) || s <= .945)) {
       const across = a / (w || 1);
       // Rounded back lit from the top-left; flanks fall off into shadow.
       const facing = (bestNx * -0.6 + bestNy * -0.8) * across;
@@ -606,6 +599,8 @@ export class AsciiRenderer {
       } else if (shape.eye && s > shape.eye[0] && s < shape.eye[1] && across > 0.6) {
         flag = FLAG_EYE;
         shade = 0;
+      } else if (shape === orca && orcaPatch(s, across)) {
+        flag = FLAG_WHITE;
       } else if (s > shape.gills[0] && s < shape.gills[1] && across > 0.58) {
         // Five gill slits.
         if (Math.floor(((s - shape.gills[0]) / (shape.gills[1] - shape.gills[0])) * 5) % 2 === 0) shade *= 0.45;
@@ -626,7 +621,7 @@ export class AsciiRenderer {
     const tip = bestSign > 0 ? this.finTipRight : this.finTipLeft;
     const [p0, p1, p2] = shape.pectoral;
     if (
-      inTriangle(u, a, L * p0, 0, L * p1, 0, L * p2, tip) &&
+      (shape === humpback ? humpbackFlipper(s, a, tip) : shape === orca ? orcaFlipper(s, a, tip) : inTriangle(u, a, L * p0, 0, L * p1, 0, L * p2, tip)) &&
       // Falcate (sickle) fins get a concave trailing edge.
       !(shape.falcate && inTriangle(u, a, L * p1, 0, L * (p1 + (p2 - p1) * 0.33), tip * 0.55, L * p2, tip))
     ) {
@@ -638,8 +633,7 @@ export class AsciiRenderer {
     if (
       (vr > 0 && inTriangle(u, a, L * v0, 0, L * v1, 0, L * v2, L * vr)) ||
       // Forked caudal fin.
-      (shape === SHAPES.whale
-        ? inTriangle(u, a, L * 0.86, 0, L * 0.985, L * 0.22, L * 0.965, L * 0.025)
+      ((shape === humpback || shape === orca) ? whaleFlukes(s, a / L)
         : shape.caudal > 0 && inTriangle(u, a, L * 0.86, 0, L * 0.95, 0, L, L * shape.caudal))
     ) {
       this.hitFlag = FLAG_FIN;
@@ -691,7 +685,7 @@ export class AsciiRenderer {
       this.shape = SHAPES[sh.kind];
       this.sharkId = sh.id;
       const kindIndex = KINDS.indexOf(sh.kind);
-      const secretCells = this.glyphMode === 'hanzi' && sh.kind === 'whale' && sh.id === 1 ? [-1, -1, -1, -1] : null;
+      const secretCells = this.glyphMode === 'hanzi' && (sh.kind === 'whale' || sh.kind === 'orca') && sh.id === 1 ? [-1, -1, -1, -1] : null;
       const secretDistances = [Infinity, Infinity, Infinity, Infinity];
 
       // Travelling body wave, growing toward the tail.
@@ -734,7 +728,7 @@ export class AsciiRenderer {
         minY = Math.min(minY, spine[k * 2 + 1]);
         maxY = Math.max(maxY, spine[k * 2 + 1]);
       }
-      const reach = L * 0.36;
+      const reach = Math.max(L * 0.36, this.finTipLeft, this.finTipRight);
       const c0 = Math.max(0, Math.floor((minX - reach) / cw));
       const c1 = Math.min(cols - 1, Math.floor((maxX + reach) / cw));
       const r0 = Math.max(0, Math.floor((minY - reach) / ch));
@@ -772,7 +766,7 @@ export class AsciiRenderer {
 
           if (centerHit && coverage >= 0.6) {
             sharkFlag[i] = flag;
-            if (this.glyphMode === 'hanzi' && sh.kind === 'whale') {
+            if (this.glyphMode === 'hanzi' && (sh.kind === 'whale' || sh.kind === 'orca')) {
               // s and v follow the bent spine, so anatomical labels swim with the body.
               const glyph = flag === FLAG_EYE ? '目'
                 : flag === FLAG_FIN ? (s >= .84 ? '尾' : '鳍')
@@ -859,11 +853,12 @@ export class AsciiRenderer {
       level *= dim;
       if (this.sharkGlyph[i]) glyph = String.fromCharCode(this.sharkGlyph[i]);
       // Tinted per species; the classic tint is a cool blue-grey, like a back seen through deep water.
-      ctx.fillStyle = flag === FLAG_EYE && this.eyeColor ? this.eyeColor : this.bodyColor(level);
+      ctx.fillStyle = flag === FLAG_WHITE ? '#f5f5f0' : flag === FLAG_EYE && this.eyeColor ? this.eyeColor : this.bodyColor(level);
       ctx.fillRect(x + 1, y + 1, cw - 1, ch - 1);
 
       let color: string;
-      if (flag === FLAG_EYE && this.eyeColor) color = this.eyeColor === '#000000' ? '#ffffff' : '#181818';
+      if (flag === FLAG_WHITE) color = '#181818';
+      else if (flag === FLAG_EYE && this.eyeColor) color = this.eyeColor === '#000000' ? '#ffffff' : '#181818';
       else if (flag === FLAG_EYE) color = shade > 0.55 ? '#181818' : '#eeeeee';
       else if (flag === FLAG_MARK) color = `rgb(${Math.round(70 * tr)},${Math.round(70 * tg)},${Math.round(70 * tb)})`;
       else if (roll < 0.09) color = this.accents[key % this.accents.length];

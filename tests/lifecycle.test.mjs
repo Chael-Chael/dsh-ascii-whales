@@ -47,8 +47,8 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   assert.ok(canvas); assert.equal(canvas.hidden, false); assert.equal(frames.size, 1)
   assert.equal(card.querySelectorAll('canvas').length, 1)
   assert.equal(card.hasAttribute('data-whales-glass'), true)
-  for (const glyphMode of ['hanzi', 'kanji', 'ascii', 'kanji', 'ascii']) {
-    settings = { ...settings, glyphMode }; scene.update(); await settle()
+  for (const species of ['orca', 'humpback']) for (const glyphMode of ['hanzi', 'kanji', 'ascii', 'kanji', 'ascii']) {
+    settings = { ...settings, species, glyphMode }; scene.update(); await settle()
     assert.equal(card.querySelectorAll('canvas').length, 1)
     assert.equal(frames.size, 1, 'Character changes dispose the previous animation loop')
     assert.ok(canvas.style.fontFamily.includes(glyphMode !== 'ascii' ? 'Whales Hanzi' : 'Whales Mono'))

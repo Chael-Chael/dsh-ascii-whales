@@ -1,0 +1,74 @@
+name: Release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restrict publishing to owner tags on main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          test "$GITHUB_REPOSITORY" = 'Chael-Chael/dsh-ascii-whales'
+          test "$GITHUB_ACTOR" = 'Chael-Chael'
+          test "$GITHUB_TRIGGERING_ACTOR" = 'Chael-Chael'
+          git merge-base --is-ancestor HEAD origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run check
+      - name: Pack tested build
+        run: |
+          mkdir -p dist
+          npm pack --ignore-scripts --pack-destination dist --json > dist/package-info.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: dist/
+      - name: Check release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          node --input-type=module -e "import p from './package.json' with {type:'json'}; if(process.env.GITHUB_REF_NAME !== 'v'+p.version) throw Error('Tag must match package version')"
+      - name: Publish to npm with trusted publishing
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TARBALL="dist/dsh-ascii-whales-$VERSION.tgz"
+          EXISTING=$(npm view "dsh-ascii-whales@$VERSION" dist.shasum 2>/dev/null || true)
+          if [ -n "$EXISTING" ]; then
+            ACTUAL=$(sha1sum "$TARBALL" | cut -d ' ' -f 1)
+            test "$ACTUAL" = "$EXISTING" || { echo 'Published package differs; refusing to overwrite release'; exit 1; }
+          else
+            npm publish "$TARBALL" --access public --provenance
+          fi
+      - name: Create GitHub Release with the same tarball
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/dsh-ascii-whales-$VERSION.tgz" --clobber
+          else
+            gh release create "$TAG" "dist/dsh-ascii-whales-$VERSION.tgz" --verify-tag --title "$TAG · 座头鲸与虎鲸" --notes-file "docs/releases/$VERSION.md"
+          fi

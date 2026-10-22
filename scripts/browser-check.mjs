@@ -10,7 +10,7 @@ const url = process.env.DSH_TEST_URL || JSON.parse(readFileSync(process.env.DSH_
 assert.equal(new URL(url).hostname, '127.0.0.1', 'Use an isolated local DSH instance')
 const record = process.argv.includes('--record')
 const output = resolve(record ? 'docs/media' : '.local/qa')
-const rawDir = resolve('.local/recordings')
+const rawDir = resolve('.local/recordings', new Date().toISOString().replace(/[:.]/g, '-'))
 mkdirSync(output, { recursive: true }); mkdirSync(rawDir, { recursive: true })
 const browser = await chromium.launch({ channel: 'msedge', headless: !process.env.DSH_HEADED })
 const errors = [], results = []
@@ -84,12 +84,12 @@ try {
       window.addEventListener('mousedown', e => { const ring = document.createElement('div'); ring.className = 'demo-ring'; ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px'; document.body.append(ring); setTimeout(() => ring.remove(), 550) })
     })
   }
-  const themeScenes = [['ascii', 'light', '浅色'], ['ascii', 'dark', '深色'], ...(record ? [['hanzi', 'hanzi-light', '浅色'], ['hanzi', 'hanzi-dark', '深色']] : [])]
+  const themeScenes = [['ascii', 'light', '浅色'], ['ascii', 'dark', '深色'], ...(record ? [['hanzi', 'hanzi-light', '浅色'], ['hanzi', 'hanzi-dark', '深色'], ['kanji', 'kanji-light', '浅色'], ['kanji', 'kanji-dark', '深色']] : [])]
   for (const [mode, id, name] of themeScenes) {
     await theme(name)
     if (record) {
       await section('ASCII 鲸鱼')
-      await click(page.getByRole('button', { name: mode === 'hanzi' ? '汉字' : 'ASCII', exact: true }))
+      await click(page.getByRole('button', { name: mode === 'kanji' ? 'Kanji' : mode === 'hanzi' ? '汉字' : 'ASCII', exact: true }))
       const grid = page.getByRole('spinbutton', { name: '字符栅格（倍）', exact: true })
       await grid.fill(mode === 'hanzi' ? '0.8' : '1'); await grid.press('Tab')
       assert.equal(await grid.inputValue(), mode === 'hanzi' ? '0.8' : '1')
@@ -111,7 +111,7 @@ try {
     const box = await canvas.boundingBox(); assert.ok(box.width > 900 && box.height > 650)
     assert.notEqual(await frame(), await pause(300).then(frame), 'Whales animate')
     const start = (Date.now() - epoch) / 1000
-    await hint(`${mode === 'hanzi' ? '汉字' : 'ASCII'} · ${name} · 鲸群游过留白`)
+    await hint(`${mode === 'kanji' ? 'Kanji' : mode === 'hanzi' ? '汉字' : 'ASCII'} · ${name} · 鲸群游过留白`)
     await page.mouse.move(1180, 760, { steps: 12 })
     await pause(record ? 2000 : 200)
     await screenshot(id)
@@ -184,6 +184,29 @@ try {
     await screenshot('fonts-dark'); await pause(1500)
     await click(page.getByRole('button', { name: '内置默认', exact: true })); await closeSettings(); await pause(1500)
     scenes.push({ id: 'fonts', glyphMode: 'ascii', gridScale: 1, start, duration: (Date.now() - epoch) / 1000 - start })
+  }
+  if (record) {
+    await theme('浅色')
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认', exact: true }))
+    const count = page.getByRole('spinbutton', { name: '鲸鱼数量', exact: true })
+    await count.fill('2'); await count.press('Tab')
+    await closeSettings()
+    const start = (Date.now() - epoch) / 1000
+    await hint('座头鲸 · 长胸鳍与弧形双尾叶'); await pause(3500)
+    await section('ASCII 鲸鱼')
+    await hint('鲸鱼种类 · 切换虎鲸')
+    await click(page.getByRole('button', { name: '虎鲸', exact: true }))
+    assert.equal(await page.getByRole('button', { name: '虎鲸', exact: true }).getAttribute('aria-pressed'), 'true')
+    await pause(1200); await closeSettings()
+    await hint('虎鲸 · 圆胸鳍与白色眼斑'); await pause(5000)
+    await screenshot('orca-light')
+    await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: 'Kanji', exact: true }))
+    await pause(1000); await closeSettings()
+    await hint('虎鲸 × Kanji · 字随鲸游'); await pause(5000)
+    await screenshot('orca-kanji-light')
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dsh-ascii-whales:v1')).species), 'orca')
+    scenes.push({ id: 'species', species: ['humpback', 'orca'], glyphModes: ['ascii', 'kanji'], start, duration: (Date.now() - epoch) / 1000 - start })
+    results.push('species: Humpback → Orca, ASCII → Kanji, saved selection PASS')
   }
   if (!record) {
     await page.reload(); await canvas.waitFor({ state: 'visible' })

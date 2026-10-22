@@ -30,14 +30,22 @@ The plugin embeds **Geist Mono 600** for ASCII, matching the upstream demo, and 
 
 Click **Scan local fonts**, allow browser access, then choose from the dropdown menus. You can also type a font name directly.
 
+![Kanji · light](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/kanji-light.gif)
+![Kanji · dark](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/kanji-dark.gif)
+
+![Switch between Humpback and Orca](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/species.gif)
+
 ![Hanzi · light](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-light.gif)
 ![Hanzi · dark](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/hanzi-dark.gif)
 
 ![Dark mode](https://raw.githubusercontent.com/Chael-Chael/dsh-ascii-whales/main/docs/media/dark.gif)
 
+Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded head, short rounded flippers, and white eye and flank patches. Both retain your selected body color; the orca patches stay off-white and are independent of the eye-background setting.
+
 | Setting | Default | Range |
 | --- | --- | --- |
 | Show whales | On | Entire scene and its glass |
+| Whale species | Humpback | Humpback / Orca; saved and available in all three character styles |
 | Character style | ASCII | ASCII / Hanzi / Kanji; applied immediately and saved |
 | Font | Bundled default | Bundled default / Local custom; separate saved English and Chinese names |
 | Eye background | Follow main color | Controls the eye cell background, with contrasting text. Defaults to body shading; choose black or white. Kanji defaults to transparent and adds an eye tile only for black/white |

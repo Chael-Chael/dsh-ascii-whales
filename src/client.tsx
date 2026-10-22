@@ -10,6 +10,7 @@ import { mountBackgrounds } from './background.mjs'
 const en = {
   title: 'ASCII Whales', description: 'Let whales drift through the quiet, and thoughts rise to the surface.',
   enabled: 'Show ocean', count: 'Whale count', speed: 'Swimming speed', size: 'Whale size', opacity: 'Opacity',
+  species: 'Whale species', humpback: 'Humpback', orca: 'Orca',
   eyeColor: 'Eye background', primary: 'Follow main color', black: 'Black', white: 'White',
   colorfulShimmer: 'Colorful shimmer', shimmerHint: 'ASCII / Hanzi only. Off: shades of your selected color. On: original seven-color accents.',
   glass: 'Frosted-glass composer', blur: 'Glass blur (px)',
@@ -27,6 +28,7 @@ const en = {
 const zh: typeof en = {
   title: 'ASCII 鲸鱼', description: '让鲸群游过留白，让思绪慢慢浮出水面。',
   enabled: '显示海洋', count: '鲸鱼数量', speed: '游动速度', size: '鲸鱼大小', opacity: '透明度',
+  species: '鲸鱼种类', humpback: '座头鲸', orca: '虎鲸',
   eyeColor: '眼睛底色', primary: '跟随主色', black: '黑色', white: '白色',
   colorfulShimmer: '彩色闪烁', shimmerHint: '适用于 ASCII / 汉字。关闭时使用主色深浅，开启后使用原版七色点缀。',
   glass: '毛玻璃输入框', blur: '玻璃模糊（px）',
@@ -81,6 +83,11 @@ export function apply(ctx: Context) {
       <div className="setCard setCardOpen" style={{ padding: 20, display: 'grid', gap: 22 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('enabled')}</span><Switch label={t('enabled')} checked={value.enabled} onChange={enabled => save({ ...value, enabled })}/></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('glass')}</span><Switch label={t('glass')} checked={value.glass} onChange={glass => save({ ...value, glass })}/></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <span>{t('species')}</span><div role="group" aria-label={t('species')} style={{ display: 'flex', gap: 8 }}>
+            {(['humpback', 'orca'] as const).map(species => <Button key={species} aria-pressed={value.species === species} variant={value.species === species ? 'primary' : undefined} onClick={() => save({ ...value, species })}>{t(species)}</Button>)}
+          </div>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <span>{t('glyphMode')}</span><div role="group" aria-label={t('glyphMode')} style={{ display: 'flex', gap: 8 }}>
             {(['ascii', 'hanzi', 'kanji'] as const).map(glyphMode => <Button key={glyphMode} aria-pressed={value.glyphMode === glyphMode} variant={value.glyphMode === glyphMode ? 'primary' : undefined} onClick={() => save({ ...value, glyphMode })}>{t(glyphMode)}</Button>)}

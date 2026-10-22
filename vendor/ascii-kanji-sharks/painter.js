@@ -9,8 +9,9 @@
  */
 import { EAT, GlyphAtlas, InkRamp, PART, SFX, SPARK, STROKE, WAKE } from "./glyphs.js";
 import { SHARK_NODES as SPINE } from "../ascii-sharks/world.ts";
+import { humpback, orca, orcaPatch, orcaFlipper, humpbackFlipper, whaleFlukes } from "../ascii-sharks/whales.ts";
 const FISH_GLYPHS = ["鰯", "鰊", "鯵", "鯖", "鰯"];
-import { clamp, hash, inTriangle } from "./util.js";
+import { clamp, hash } from "./util.js";
 
 function palette(from, to, steps) {
   const out = [];
@@ -54,19 +55,11 @@ const LAYER_WAKE = 1, LAYER_FISH = 2, LAYER_SHARK = 3;
 const SUBSAMPLES = [-0.28, -0.28, 0.28, -0.28, -0.28, 0.28, 0.28, 0.28];
 const LIGHT_X = -0.6, LIGHT_Y = -0.8; // from the top-left
 
-/** Top-down half width at s (0 snout → 1 tail), as a fraction of body length. */
-function halfWidth(s) {
-  // Match the existing whale silhouette: rounded head, broad back and narrow tail stock.
-  if (s < 0.12) return 0.115 * Math.pow(Math.sin(s / 0.12 * Math.PI / 2), 0.45);
-  if (s < 0.35) return 0.115 + 0.02 * Math.sin((s - 0.12) / 0.23 * Math.PI);
-  if (s < 0.87) return 0.018 + 0.097 * Math.pow(1 - (s - 0.35) / 0.52, 1.1);
-  return 0.018 * (1 - (s - 0.87) / 0.13);
-}
-
 const at = (list, tone) => list[Math.round(clamp(tone, 0, 1) * (list.length - 1))];
 
 export class Painter {
   constructor(canvas, gridScale = 1) {
+    this.shape = humpback;
     this.gridScale = gridScale;
     // shortcut: keep cells at least 4 px for legibility and raster cost; revisit for finer grids.
     this.cell = Math.max(4, 18 * gridScale);
@@ -236,24 +229,24 @@ export class Painter {
     }
     const d = Math.sqrt(best);
     const s = bestS;
-    const u = s * L;
-    const w = halfWidth(s) * L;
+    const w = this.shape.halfWidth(s) * L;
     this.hitS = s;
     this.hitD = d;
 
-    if (d <= w) {
+    if (d <= w && s <= .945) {
       const across = d / (w || 1);
-      if (s > 0.60 && s < 0.65 && across < 0.3) return DORSAL;
+      if (s > this.shape.dorsal[0] && s < this.shape.dorsal[1] && across < 0.3) return DORSAL;
       return BODY;
     }
     const reach = this.hitSide > 0 ? this.finRight : this.finLeft;
-    if (inTriangle(u, d, L * 0.23, 0, L * 0.42, 0, L * 0.58, reach)) return PECTORAL;
-    if (inTriangle(u, d, L * 0.82, 0, L * 0.93, 0, L, L * 0.22)) return TAIL;
+    if (this.shape === orca ? orcaFlipper(s, d, reach) : humpbackFlipper(s, d, reach)) return PECTORAL;
+    if (whaleFlukes(s, d / L)) return TAIL;
     return NONE;
   }
 
   /** The render spine: the sim spine plus a travelling wave that grows toward the tail. */
   buildSpine(sh) {
+    this.shape = sh.kind === "orca" ? orca : humpback;
     const { spine, arc } = this;
     const n = sh.nodes;
     const L = sh.length;
@@ -279,8 +272,8 @@ export class Painter {
     // Bank into turns: the inside fin tucks in, the outside one spreads.
     const bank = clamp(sh.turn * 0.45, -0.35, 0.35);
     const flex = 1 + 0.06 * Math.sin(sh.phase * 0.5);
-    this.finRight = L * 0.29 * flex * (1 - bank);
-    this.finLeft = L * 0.29 * flex * (1 + bank);
+    this.finRight = L * this.shape.pectoral[3] * flex * (1 - bank);
+    this.finLeft = L * this.shape.pectoral[3] * flex * (1 + bank);
   }
 
   /** One eye per side, each exactly one cell, set on the head after the body is drawn. */
@@ -296,7 +289,7 @@ export class Painter {
     const ty = (spine[k * 2 + 3] - spine[k * 2 + 1]) / seg;
     const x = spine[k * 2] + (spine[k * 2 + 2] - spine[k * 2]) * t;
     const y = spine[k * 2 + 1] + (spine[k * 2 + 3] - spine[k * 2 + 1]) * t;
-    const off = halfWidth(s) * sh.length * 0.62;
+    const off = this.shape.halfWidth(s) * sh.length * 0.62;
     for (const side of [-1, 1]) {
       const i = this.cellAt(x - ty * off * side, y + tx * off * side);
       if (i >= 0 && this.stamp[i] === this.frame && this.layer[i] === LAYER_SHARK) {
@@ -317,7 +310,7 @@ export class Painter {
       minY = Math.min(minY, spine[k * 2 + 1]);
       maxY = Math.max(maxY, spine[k * 2 + 1]);
     }
-    const reach = L * 0.3;
+    const reach = Math.max(L * 0.3, this.finLeft, this.finRight);
     const c0 = Math.max(0, Math.floor((minX - reach) / cell));
     const c1 = Math.min(cols - 1, Math.floor((maxX + reach) / cell));
     const r0 = Math.max(0, Math.floor((minY - reach) / cell));
@@ -356,7 +349,7 @@ export class Painter {
         let tone;
         let color = null;
         if (part === BODY) {
-          const across = d / (halfWidth(s) * L || 1);
+          const across = d / (this.shape.halfWidth(s) * L || 1);
           const facing = (-ty * side * LIGHT_X + tx * side * LIGHT_Y) * across;
           // Heavy kanji down the spine, light strokes toward the flanks: the
           // drop-off is what rounds the body.
@@ -379,7 +372,8 @@ export class Painter {
           tone = 0.55;
         }
         color ??= at(theme.skin, tone * dim);
-        this.put(i, LAYER_SHARK, sh.depth, glyph, color, at(theme.fill, tone * dim));
+        const patch = this.shape === orca && part === BODY && orcaPatch(s, d / (this.shape.halfWidth(s) * L || 1));
+        this.put(i, LAYER_SHARK, sh.depth, glyph, patch ? '#181818' : color, patch ? '#f5f5f0' : at(theme.fill, tone * dim));
       }
     }
     this.placeEyes(sh);

@@ -6,6 +6,9 @@ const bundled = await build({ entryPoints: ['vendor/ascii-sharks/index.ts'], bun
 const { World, AsciiRenderer, paintGrid } = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'))
 
 test('untrusted persisted settings are bounded and recover safely', () => {
+  assert.equal(normalize({ species: 'orca' }).species, 'orca')
+  for (const species of [undefined, null, 'shark', 1]) assert.equal(normalize({ species }).species, 'humpback')
+  assert.equal(readSettings({ getItem: () => '{"species":"orca"}' }).species, 'orca')
   assert.deepEqual(normalize(null), defaults)
   assert.deepEqual(normalize({ count: 100, speed: -4, size: NaN, enabled: 'false', opacity: Infinity }), { ...defaults, count: 20, speed: 0.1 })
   assert.equal(normalize({ count: 2.8 }).count, 3)

@@ -40,11 +40,18 @@ test('Kanji whale anatomy, color, grid, wake and font controls reach the painter
   whale.length = 600; whale.phase = 0; whale.speed = 0; whale.turn = 0
   // Straight spine isolates silhouette classification from swimming curvature.
   for (let k = 0; k < SHARK_NODES; k++) { painter.spine[k * 2] = k * 600 / (SHARK_NODES - 1); painter.spine[k * 2 + 1] = 400; painter.arc[k] = k * 600 / (SHARK_NODES - 1) }
-  painter.arcTotal = 600; painter.finLeft = painter.finRight = 600 * .29
+  painter.arcTotal = 600; painter.finLeft = painter.finRight = 600 * .32
   assert.equal(painter.classify(600 * .2, 400 + 600 * .08, 600), 1, 'Former gills are body')
   assert.equal(painter.classify(600 * .7, 400 + 600 * .07, 600), 0, 'No pelvic fins')
   assert.equal(painter.classify(600 * .97, 400 + 600 * .15, 600), 7, 'Broad whale flukes')
-  assert.equal(painter.classify(600 * .52, 400 + 600 * .19, 600), 5, 'Long whale flippers')
+  assert.equal(painter.classify(600 * .33, 400 + 600 * .19, 600), 5, 'Long whale flippers')
+  assert.equal(painter.classify(600 * 1.1, 400 + 600 * .1, 600), 0, 'No phantom tail beyond the spine endpoint')
+  assert.equal(painter.classify(600 * .98, 400, 600), 0, 'Central tail notch stays open')
+  assert.equal(painter.classify(600 * .98, 400 + 600 * .11, 600), 7, 'Curved lobe extends behind notch')
+  assert.equal(painter.classify(600 * .52, 400 + 600 * .19, 600), 0, 'Old swept triangle is removed')
+  assert.equal(painter.classify(600 * .338, 400 + 600 * .14, 600), 0, 'Flipper root has a slight inset')
+  assert.equal(painter.classify(600 * .30, 400 + 600 * .14, 600), 5, 'Inset leaves the flipper attached')
+  assert.equal(painter.classify(600 * .39, 400 + 600 * .30, 600), 5, 'Long rounded flipper tip')
   for (const dark of [false, true]) {
     painter.setTheme(dark, 0, 0, '#ff0000')
     assert.equal(painter.theme.grid, 'rgba(128,128,128,0)')
@@ -68,6 +75,24 @@ test('Kanji whale anatomy, color, grid, wake and font controls reach the painter
   }
   const ascii = new AsciiRenderer(canvas(), false, 1)
   ascii.resize(1200, 800, 1)
+  for (const kind of ['whale', 'orca']) {
+    whale.kind = kind
+    ascii.rasterizeSharks([whale], 0)
+    painter.buildSpine(whale)
+    for (const renderer of [ascii, painter]) {
+      for (let k = 0; k < SHARK_NODES; k++) {
+        renderer.spine[k * 2] = k * 600 / (SHARK_NODES - 1)
+        renderer.spine[k * 2 + 1] = 400
+        renderer.arc[k] = k * 600 / (SHARK_NODES - 1)
+      }
+      renderer.arcTotal = 600
+    }
+    for (const [s, across, inside] of [[.98, 0, false], [.98, .11, true], [.97, -.15, true], [1.1, .1, false], [.9, .19, false]]) {
+      assert.equal(ascii.sampleShark(s * 600, 400 + across * 600, 600), inside, `${kind}: ASCII curved tail ${s}/${across}`)
+      assert.equal(painter.classify(s * 600, 400 + across * 600, 600), inside ? 7 : 0, `${kind}: Kanji shares the same tail`)
+    }
+  }
+  whale.kind = 'whale'
   for (const [speed, phase, turn] of [[12, 0, 0], [60, 1.5, -1], [100, 3, 1]]) {
     Object.assign(whale, { speed, phase, turn })
     ascii.rasterizeSharks([whale], 1)
@@ -75,6 +100,26 @@ test('Kanji whale anatomy, color, grid, wake and font controls reach the painter
     assert.deepEqual([...painter.spine], [...ascii.spine], 'Kanji body wave matches stackedlol rendering')
     assert.equal(painter.finLeft, ascii.finTipLeft)
     assert.equal(painter.finRight, ascii.finTipRight)
+  }
+  for (const kind of ['orca', 'whale', 'orca']) for (const dark of [false, true]) {
+    whale.kind = kind
+    for (const mode of ['ascii', 'hanzi']) {
+      const renderer = new AsciiRenderer(canvas(), dark, .6, 0, 0, mode)
+      renderer.resize(1200, 800, 1)
+      renderer.setTheme(dark, 0, 0, '#ec4899', false, 'black')
+      renderer.render(ocean, 1 / 60)
+      assert.equal([...renderer.sharkFlag].includes(7), kind === 'orca', `${mode}: white patches only on orcas`)
+      assert.ok([...renderer.sharkFlag].includes(5), 'Real eyes remain distinct from patches')
+      assert.equal(renderer.bodyColor(120), 'rgb(236,72,153)', 'Species preserves custom color')
+      painter.buildSpine(whale)
+      assert.deepEqual([...painter.spine], [...renderer.spine])
+      assert.equal(painter.finLeft, renderer.finTipLeft)
+    }
+    painter.setTheme(dark, 0, 0, '#ec4899', 'black')
+    painter.render(ocean, 1 / 60)
+    assert.equal(painter.touched.some(i => painter.fill[i] === '#f5f5f0'), kind === 'orca', 'Kanji patches follow species')
+    const eyes = painter.touched.filter(i => painter.glyph[i] === '目')
+    assert.ok(eyes.length > 0 && eyes.every(i => painter.fill[i] === '#000000'), 'Eye override does not recolor white patches')
   }
   ocean.events.push({ kind: 'eat', x: 400, y: 400 }, { kind: 'splash', x: 700, y: 400 })
   painter.consumeEvents(ocean)

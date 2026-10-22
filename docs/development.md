@@ -32,7 +32,7 @@ Recordings use a 1280×800 viewport and export 960×600, 15 fps looping GIFs wit
 
 ## Automated releases
 
-`.github/workflows/release.yml` checks main pushes without publishing. A `v*` tag must match package.json, point to a commit on main, and be triggered (including reruns) by `Chael-Chael` in this repository before publishing. Manual runs use the same rules: branch runs only check; tag runs may publish.
+`.github/workflows/release.yml` checks main pushes without publishing. A `v*` tag must match package.json, point to a commit on main, and be triggered (including reruns) by `Chael-Chael` in this repository before publishing. Manual runs use the same rules: branch runs only check unless an existing release tag is explicitly supplied in the `tag` input. That input allows retrying a failed release with the latest workflow without moving the original tag; the tagged commit must still belong to main and match package.json.
 
 Configure npm Trusted Publisher for `Chael-Chael/dsh-ascii-whales`, workflow `release.yml`, no environment, with `npm publish` permission. Node 24 supplies npm OIDC support; no npm token is stored in GitHub. The workflow checks, packs once, uploads the candidate artifact, publishes with provenance and attaches that same tarball to GitHub Release. If rerun after npm succeeded, the published tarball hash must match before creating the release.
 

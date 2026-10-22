@@ -4,12 +4,17 @@ on:
     branches: [main]
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to retry (blank checks this ref only)'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -18,16 +23,20 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
       - name: Restrict publishing to owner tags on main
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.tag != ''
         run: |
           test "$GITHUB_REPOSITORY" = 'Chael-Chael/dsh-ascii-whales'
           test "$GITHUB_ACTOR" = 'Chael-Chael'
           test "$GITHUB_TRIGGERING_ACTOR" = 'Chael-Chael'
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
           git merge-base --is-ancestor HEAD origin/main
       - uses: actions/setup-node@v4
         with:
@@ -45,14 +54,14 @@ jobs:
           name: npm-package
           path: dist/
       - name: Check release tag
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.tag != ''
         run: |
-          node --input-type=module -e "import p from './package.json' with {type:'json'}; if(process.env.GITHUB_REF_NAME !== 'v'+p.version) throw Error('Tag must match package version')"
+          node --input-type=module -e "import p from './package.json' with {type:'json'}; if(process.env.RELEASE_TAG !== 'v'+p.version) throw Error('Tag must match package version')"
       - name: Publish to npm with trusted publishing
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.tag != ''
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TARBALL="dist/dsh-ascii-whales-$VERSION.tgz"
+          TARBALL="./dist/dsh-ascii-whales-$VERSION.tgz"
           EXISTING=$(npm view "dsh-ascii-whales@$VERSION" dist.shasum 2>/dev/null || true)
           if [ -n "$EXISTING" ]; then
             ACTUAL=$(sha1sum "$TARBALL" | cut -d ' ' -f 1)
@@ -61,7 +70,7 @@ jobs:
             npm publish "$TARBALL" --access public --provenance
           fi
       - name: Create GitHub Release with the same tarball
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

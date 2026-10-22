@@ -13,3 +13,9 @@ The bundled animation font subsets derive from Geist Mono (The Geist Project Aut
 The pinned upstream snapshot does not include a separate LICENSE file. The MIT license for this project's original integration does not relicense the upstream source. Upstream authorship is preserved here and in the published bundle.
 
 Glass implementation research: [cnayu/dsh-glass-theme](https://github.com/cnayu/dsh-glass-theme) and [noexcs/dsh-skin-glass](https://github.com/noexcs/dsh-skin-glass). Our scoped CSS uses an independent pseudo-element to avoid changing the containing block of fixed composer menus. Neither theme is a runtime dependency.
+
+## ascii-kanji-sharks
+
+The Kanji style adapts [michikusa404/ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks), commit `7153916aebba0f34ce2d46904ad192188cdc6ceb`, copyright (c) 2026 michikusa404, under the MIT License. The complete notice is included in `vendor/ascii-kanji-sharks/LICENSE` and the npm package.
+
+Retained: ink-measured glyph shading, schools, hunting and text effects. Adapted: whale silhouette (rounded head, long flippers, broad tail flukes, no gills or pelvic fins), transparent background, shared lifecycle, configurable populations/size/color/grid/wakes, and bundled Source Han Serif instead of remote Google Fonts.

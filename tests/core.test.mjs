@@ -9,8 +9,13 @@ test('untrusted persisted settings are bounded and recover safely', () => {
   assert.deepEqual(normalize(null), defaults)
   assert.deepEqual(normalize({ count: 100, speed: -4, size: NaN, enabled: 'false', opacity: Infinity }), { ...defaults, count: 20, speed: 0.1 })
   assert.equal(normalize({ count: 2.8 }).count, 3)
+  for (const eyeColor of ['primary', 'black', 'white']) assert.equal(normalize({ eyeColor }).eyeColor, eyeColor)
+  for (const eyeColor of [undefined, 'red', true, null]) assert.equal(normalize({ eyeColor }).eyeColor, 'primary')
+  assert.equal(normalize({ colorfulShimmer: true }).colorfulShimmer, true)
+  for (const colorfulShimmer of [undefined, null, 'true', 1]) assert.equal(normalize({ colorfulShimmer }).colorfulShimmer, false)
   assert.equal(normalize({ color: '#EC4899' }).color, '#ec4899')
   assert.equal(normalize({ glyphMode: 'hanzi' }).glyphMode, 'hanzi')
+  assert.equal(normalize({ glyphMode: 'kanji' }).glyphMode, 'kanji')
   for (const glyphMode of ['unknown', null, 1, {}]) assert.equal(normalize({ glyphMode }).glyphMode, 'ascii')
   assert.equal(normalize({ fontSource: 'local', hanziFont: '方正屏显雅宋简体' }).hanziFont, '方正屏显雅宋简体')
   assert.equal(normalize({ asciiFont: 'Times New Roman' }).asciiFont, 'Times New Roman')
@@ -56,6 +61,14 @@ test('cell size, hidden grid and selected color reach the upstream rasterizer', 
     renderer.setTheme(true, 0, 0, color)
     assert.deepEqual([60, 120, 200].map(level => renderer.bodyColor(level)), shades)
   }
+  // A neutral level-120 midtone reproduces the upstream grayscale range exactly.
+  renderer.setTheme(false, 0, 0, '#787878')
+  for (const level of [0, 12, 40, 46, 60, 120, 160, 200, 226, 255]) {
+    assert.equal(renderer.bodyColor(level), `rgb(${level},${level},${level})`)
+  }
+  renderer.setTheme(false, 0, 0, '#4d6bfe')
+  assert.equal(renderer.bodyColor(60), 'rgb(39,54,127)')
+  assert.equal(renderer.bodyColor(226), 'rgb(217,223,255)')
   for (const glyphMode of ['ascii', 'hanzi']) for (const grid of [0.1, 10]) {
     const extremes = new AsciiRenderer(createCanvas(), false, grid, 0, 10, glyphMode)
     extremes.resize(320, 240, 1)
@@ -138,4 +151,41 @@ test('upstream simulation accepts whales and keeps finite bodies and fish after 
   for (let i = 0; i < 30; i++) extremes.step(1 / 60)
   assert.equal(extremes.sharks.length, 20)
   for (const whale of extremes.sharks) assert.ok([...whale.nodes].every(Number.isFinite))
+})
+
+test('colorful shimmer toggles rendered accents without changing the selected body color', t => {
+  const colors = new Set(), eyes = []; let lastFill
+  const ctx = new Proxy({ fillRect() { lastFill = this.fillStyle }, fillText(glyph) { colors.add(this.fillStyle); if (glyph === 'o' || glyph === '目') eyes.push({ fill: lastFill, text: this.fillStyle }) } }, { get: (target, key) => target[key] ?? (() => {}) })
+  const createCanvas = () => ({ getContext: () => ctx })
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: createCanvas } })
+  t.after(() => { if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document })
+  const accents = ['#e0892c', '#e03a32', '#b44ae0', '#33c8cc', '#3cb54a', '#3150e8', '#d9c14a']
+  for (const mode of ['ascii', 'hanzi']) {
+    const renderer = new AsciiRenderer(createCanvas(), false, 1, 0, 0, mode)
+    renderer.resize(1200, 800, 1)
+    const world = new World([{ kind: 'whale', size: 1 }], 0)
+    world.resize(1200, 800, renderer.cellWidth, renderer.cellHeight)
+    const whale = world.sharks[0]
+    whale.length = 700; whale.phase = 0; whale.turn = 0
+    for (let k = 0; k < whale.nodes.length / 2; k++) {
+      whale.nodes[k * 2] = 950 - k * 700 / (whale.nodes.length / 2 - 1)
+      whale.nodes[k * 2 + 1] = 400
+    }
+    for (const dark of [false, true]) for (const [eyeColor, expected] of [['primary', null], ['black', '#000000'], ['white', '#ffffff'], ['primary', null]]) {
+      renderer.setTheme(dark, 0, 0, '#4d6bfe', true, eyeColor)
+      eyes.length = 0; renderer.render(world, .1)
+      assert.ok(eyes.length > 0)
+      assert.ok(eyes.every(eye => expected ? eye.fill === expected : eye.fill.startsWith('rgb(')), `${mode}/${eyeColor}: rendered eye background`)
+      if (expected) assert.ok(eyes.every(eye => eye.text === (eyeColor === 'black' ? '#ffffff' : '#181818')))
+    }
+    for (const enabled of [false, true, false]) {
+      renderer.setTheme(false, 0, 0, '#4d6bfe', enabled)
+      colors.clear()
+      for (let frame = 0; frame < 30; frame++) { world.time = frame / 10; renderer.render(world, .1) }
+      assert.equal(renderer.bodyColor(120), 'rgb(77,107,254)')
+      assert.equal(accents.some(color => colors.has(color)), enabled, `${mode}: colorful accents ${enabled}`)
+      if (enabled) assert.ok(colors.has('#e03a32'), 'Original red accent is restored')
+    }
+  }
 })

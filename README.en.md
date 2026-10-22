@@ -22,7 +22,7 @@ Open **Settings → ASCII Whales**. Use Desktop's own plugin manager for Desktop
 
 The animation fills the empty chat area behind the title and composer. It follows the native light/dark theme and disappears in existing conversations. Glass is neutral white or charcoal, with no blue tint; colors passing behind it are naturally blurred.
 
-Your chosen color anchors the whale body's midtones, with gentle shadows and highlights. Both themes use the same body palette, carrying your shade of blue from daylight into night.
+Your chosen color anchors the whale body's midtones, with deeper shadows and brighter highlights that preserve per-cell lighting and body volume. Both themes use the same body palette, carrying your shade of blue from daylight into night.
 
 Choose **Settings → ASCII Whales → Character style → Hanzi** for Chinese characters: 吻 at the snout, 目 at the eyes, 背 along the back, 鳍 on fins and 尾 on tail flukes. Water and ocean characters fill the body; fish become 鱼, 鲤, 鲭 and 鲱. These labels follow the bending body. Hanzi use wider cells, adjustable with cell size.
 
@@ -38,8 +38,10 @@ Click **Scan local fonts**, allow browser access, then choose from the dropdown 
 | Setting | Default | Range |
 | --- | --- | --- |
 | Show whales | On | Entire scene and its glass |
-| Character style | ASCII | ASCII / Hanzi; applied immediately and saved |
+| Character style | ASCII | ASCII / Hanzi / Kanji; applied immediately and saved |
 | Font | Bundled default | Bundled default / Local custom; separate saved English and Chinese names |
+| Eye background | Follow main color | Controls the eye cell background, with contrasting text. Defaults to body shading; choose black or white. Kanji defaults to transparent and adds an eye tile only for black/white |
+| Colorful shimmer | Off | ASCII / Hanzi: selected-color shades by default; enable the original seven-color glyph accents. Body color is unchanged. Not applicable to Kanji |
 | Whale color | `#4d6bfe` | Visual swatches and system color picker; fish and wakes follow |
 | Whales | 3 | 1–20 |
 | Size | 1× | 0.1–10× |
@@ -67,6 +69,10 @@ Settings use official DSH controls. **Restore defaults** uses the theme-aware pr
 
 This adapts **[stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks)**, retaining its simulation, flexible spines, ASCII rasterizer and lighting. The whale shape, DSH integration, palettes and controls are adaptations. See [source attribution](THIRD_PARTY_NOTICES.md) for the pinned commit and credits.
 
+The **Kanji** style adapts **[ascii-kanji-sharks · 漢字の海](https://github.com/michikusa404/ascii-kanji-sharks)** by **[michikusa404](https://github.com/michikusa404)** (MIT License, Copyright © 2026 michikusa404). Its shark geometry, ink-measured Kanji shading, schooling simulation and feeding text effects come from that project. Our adaptations replace the shark silhouette with whales and add DSH integration, a transparent background, adjustable settings and offline fonts. The full license is preserved in [vendor/ascii-kanji-sharks/LICENSE](vendor/ascii-kanji-sharks/LICENSE).
+
+Thank you to **michikusa404** for turning Kanji into an ocean, and to **stackedlol** for the character-based schools and animation. Their publicly shared source made it possible to bring this sea into DeepSeek Harness.
+
 ```sh
 npm ci --legacy-peer-deps
 npm run check
@@ -74,3 +80,9 @@ npm pack
 ```
 
 Animation and fonts are bundled for offline loading. See [development and recording](docs/development.md) and [test results](docs/validation.md).
+
+## Kanji
+
+Choose **Character style → Kanji** for the MIT-licensed [ascii-kanji-sharks](https://github.com/michikusa404/ascii-kanji-sharks) simulation, adapted to whales: schools, ink-measured shading and feeding text effects. Existing population, size, speed, color, grid, wake and font controls apply. Cells have a 4 px minimum (about 0.22×; lower settings use the same cell size). Kanji uses the Chinese font field; the English font field applies only to ASCII. Fonts are bundled for offline use; both whale styles remain available.
+
+All three styles support visibility, count, size, speed, opacity, cell size, grid opacity, small fish count, wake intensity, color, fonts and the glass toggle/blur/opacity. Color affects bodies, fish and wakes; eye backgrounds follow body shading by default, with optional black or white. Kanji glints and sound effects retain theme accents. The first three whales use relative sizes of 100%, 70% and 84%.

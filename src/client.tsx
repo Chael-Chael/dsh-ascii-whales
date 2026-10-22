@@ -9,11 +9,13 @@ import { mountBackgrounds } from './background.mjs'
 
 const en = {
   title: 'ASCII Whales', description: 'Let whales drift through the quiet, and thoughts rise to the surface.',
-  enabled: 'Show whales', count: 'Whale count', speed: 'Swimming speed', size: 'Whale size', opacity: 'Opacity',
+  enabled: 'Show ocean', count: 'Whale count', speed: 'Swimming speed', size: 'Whale size', opacity: 'Opacity',
+  eyeColor: 'Eye background', primary: 'Follow main color', black: 'Black', white: 'White',
+  colorfulShimmer: 'Colorful shimmer', shimmerHint: 'ASCII / Hanzi only. Off: shades of your selected color. On: original seven-color accents.',
   glass: 'Frosted-glass composer', blur: 'Glass blur (px)',
   gridScale: 'Cell size (×)', gridOpacity: 'Grid opacity', glassOpacity: 'Glass opacity',
-  fishCount: 'Small fish count', wake: 'Wake intensity', color: 'Whale color',
-  glyphMode: 'Character style', ascii: 'ASCII', hanzi: 'Hanzi',
+  fishCount: 'Small fish count', wake: 'Wake intensity', color: 'Ocean color',
+  glyphMode: 'Character style', ascii: 'ASCII', hanzi: 'Hanzi', kanji: 'Kanji',
   fontSource: 'Font', bundled: 'Bundled default', local: 'Local custom', asciiFont: 'English font name', hanziFont: 'Chinese font name',
   fontHint: 'Defaults: Geist Mono 600 / Source Han Serif. Local names use fonts installed on this device; blank or unavailable names fall back to the bundled font.',
   scanFonts: 'Scan local fonts', scanning: 'Scanning…', chooseAscii: 'Choose English font', chooseHanzi: 'Choose Chinese font',
@@ -24,11 +26,13 @@ const en = {
 }
 const zh: typeof en = {
   title: 'ASCII 鲸鱼', description: '让鲸群游过留白，让思绪慢慢浮出水面。',
-  enabled: '显示鲸鱼', count: '鲸鱼数量', speed: '游动速度', size: '鲸鱼大小', opacity: '透明度',
+  enabled: '显示海洋', count: '鲸鱼数量', speed: '游动速度', size: '鲸鱼大小', opacity: '透明度',
+  eyeColor: '眼睛底色', primary: '跟随主色', black: '黑色', white: '白色',
+  colorfulShimmer: '彩色闪烁', shimmerHint: '适用于 ASCII / 汉字。关闭时使用主色深浅，开启后使用原版七色点缀。',
   glass: '毛玻璃输入框', blur: '玻璃模糊（px）',
   gridScale: '字符栅格（倍）', gridOpacity: '底纹网格透明度', glassOpacity: '玻璃不透明度',
-  fishCount: '小鱼数量', wake: '尾迹强度', color: '鲸鱼颜色',
-  glyphMode: '字符风格', ascii: 'ASCII', hanzi: '汉字',
+  fishCount: '小鱼数量', wake: '尾迹强度', color: '海洋颜色',
+  glyphMode: '字符风格', ascii: 'ASCII', hanzi: '汉字', kanji: 'Kanji',
   fontSource: '字体', bundled: '内置默认', local: '本机自定义', asciiFont: '英文字体名称', hanziFont: '中文字体名称',
   fontHint: '默认：Geist Mono 600 / 思源宋体。本机字体填写已安装的名称，留空或未安装时回退到内置字体。',
   scanFonts: '扫描本机字体', scanning: '扫描中…', chooseAscii: '选择英文字体', chooseHanzi: '选择中文字体',
@@ -79,7 +83,7 @@ export function apply(ctx: Context) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('glass')}</span><Switch label={t('glass')} checked={value.glass} onChange={glass => save({ ...value, glass })}/></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <span>{t('glyphMode')}</span><div role="group" aria-label={t('glyphMode')} style={{ display: 'flex', gap: 8 }}>
-            {(['ascii', 'hanzi'] as const).map(glyphMode => <Button key={glyphMode} aria-pressed={value.glyphMode === glyphMode} variant={value.glyphMode === glyphMode ? 'primary' : undefined} onClick={() => save({ ...value, glyphMode })}>{t(glyphMode)}</Button>)}
+            {(['ascii', 'hanzi', 'kanji'] as const).map(glyphMode => <Button key={glyphMode} aria-pressed={value.glyphMode === glyphMode} variant={value.glyphMode === glyphMode ? 'primary' : undefined} onClick={() => save({ ...value, glyphMode })}>{t(glyphMode)}</Button>)}
           </div>
         </div>
         <div style={{ display: 'grid', gap: 12 }}>
@@ -99,6 +103,15 @@ export function apply(ctx: Context) {
             </div>)}
           </>}
           <p style={{ margin: 0, fontSize: 12, color: 'var(--dsw-fg-muted)', lineHeight: 1.6 }}>{t('fontHint')}</p>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <span>{t('eyeColor')}</span><div role="group" aria-label={t('eyeColor')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {(['primary', 'black', 'white'] as const).map(eyeColor => <Button key={eyeColor} aria-pressed={value.eyeColor === eyeColor} variant={value.eyeColor === eyeColor ? 'primary' : undefined} onClick={() => save({ ...value, eyeColor })}>{t(eyeColor)}</Button>)}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('colorfulShimmer')}</span><Switch label={t('colorfulShimmer')} disabled={value.glyphMode === 'kanji'} checked={value.colorfulShimmer} onChange={colorfulShimmer => save({ ...value, colorfulShimmer })}/></div>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--dsw-fg-muted)' }}>{t('shimmerHint')}</p>
         </div>
         <div style={{ display: 'grid', gap: 12 }}>
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}><span>{t('color')}</span><span style={{ display: 'flex', alignItems: 'center', gap: 12 }}><code>{value.color}</code><Input type="color" aria-label={t('color')} value={value.color} style={{ width: 48, height: 28, cursor: 'pointer' }} onChange={event => save({ ...value, color: event.target.value })}/></span></label>

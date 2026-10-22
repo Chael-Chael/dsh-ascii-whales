@@ -13,7 +13,7 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   const win = dom.window, frames = new Map(), observers = []
   let nextFrame = 0, settings = { ...defaults }
   const motion = new win.EventTarget(); motion.matches = false
-  const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}), set: (target, key, value) => { target[key] = value; return true } })
+  const context = new Proxy({ getImageData: () => ({ data: new Uint8ClampedArray(64 * 64 * 4) }), measureText: () => ({ actualBoundingBoxAscent: 12, actualBoundingBoxDescent: 3 }) }, { get: (target, key) => target[key] ?? (() => {}), set: (target, key, value) => { target[key] = value; return true } })
   win.HTMLCanvasElement.prototype.getContext = () => context
   win.matchMedia = () => motion
   const saved = new Map()
@@ -25,10 +25,10 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
     requestAnimationFrame: fn => { frames.set(++nextFrame, fn); return nextFrame }, cancelAnimationFrame: id => frames.delete(id),
   })) { saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key)); Object.defineProperty(globalThis, key, { configurable: true, value }) }
   t.after(() => { for (const [key, descriptor] of saved) { if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key] } dom.window.close() })
-  for (const speed of [.1, 1, 10]) {
+  for (const glyphMode of ['ascii', 'kanji']) for (const speed of [.1, 1, 10]) {
     const probe = win.document.createElement('canvas')
     probe.getBoundingClientRect = () => ({ width: 100, height: 100, left: 0, top: 0 })
-    const engine = new OceanEngine(probe, [], speed, false, 1, 0, 0, 0)
+    const engine = new OceanEngine(probe, [], speed, false, 1, 0, 0, 0, defaults.color, glyphMode)
     engine.last = 0
     for (let frame = 1; frame <= 60; frame++) {
       frames.delete(engine.raf)
@@ -46,11 +46,11 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   assert.ok(canvas); assert.equal(canvas.hidden, false); assert.equal(frames.size, 1)
   assert.equal(card.querySelectorAll('canvas').length, 1)
   assert.equal(card.hasAttribute('data-whales-glass'), true)
-  for (const glyphMode of ['hanzi', 'ascii']) {
+  for (const glyphMode of ['hanzi', 'kanji', 'ascii', 'kanji', 'ascii']) {
     settings = { ...settings, glyphMode }; scene.update(); await settle()
     assert.equal(card.querySelectorAll('canvas').length, 1)
     assert.equal(frames.size, 1, 'Character changes dispose the previous animation loop')
-    assert.ok(canvas.style.fontFamily.includes(glyphMode === 'hanzi' ? 'Whales Hanzi' : 'Whales Mono'))
+    assert.ok(canvas.style.fontFamily.includes(glyphMode !== 'ascii' ? 'Whales Hanzi' : 'Whales Mono'))
   }
   settings = { ...settings, fontSource: 'local', asciiFont: 'Consolas', hanziFont: '方正屏显雅宋简体' }; scene.update(); await settle()
   assert.match(canvas.style.fontFamily, /^"?Consolas"?,/)
@@ -59,6 +59,10 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   assert.ok(canvas.style.fontFamily.includes('方正屏显雅宋简体'))
   settings = { ...settings, hanziFont: '' }; scene.update(); await settle()
   assert.ok(canvas.style.fontFamily.startsWith('"Whales Hanzi"'))
+  settings = { ...settings, glyphMode: 'kanji', opacity: .35, blur: 24, glassOpacity: .7 }; scene.update()
+  assert.equal(canvas.style.opacity, '0.35')
+  assert.equal(card.style.getPropertyValue('--whales-blur'), '24px')
+  assert.equal(card.style.getPropertyValue('--whales-glass-opacity'), '0.7')
   settings = { ...settings, glass: false }; scene.update()
   assert.equal(card.hasAttribute('data-whales-glass'), false)
   card.dataset.contentPhase = 'conversation'; await settle()
@@ -67,7 +71,7 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
   assert.equal(canvas.hidden, false); assert.equal(frames.size, 1)
   settings = { ...settings, enabled: false }; scene.update()
   assert.equal(canvas.hidden, true); assert.equal(frames.size, 0)
-  settings = { ...defaults }; scene.update()
+  settings = { ...defaults, glyphMode: 'kanji' }; scene.update()
   motion.matches = true; motion.dispatchEvent(new win.Event('change'))
   assert.equal(canvas.hidden, false); assert.equal(frames.size, 0)
   Object.defineProperty(win.document, 'hidden', { configurable: true, value: true })

@@ -93,8 +93,8 @@ try {
       const grid = page.getByRole('spinbutton', { name: '字符栅格（倍）', exact: true })
       await grid.fill(mode === 'hanzi' ? '0.8' : '1'); await grid.press('Tab')
       assert.equal(await grid.inputValue(), mode === 'hanzi' ? '0.8' : '1')
-      await click(page.getByRole('switch', { name: '显示鲸鱼' }))
-      await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+      await click(page.getByRole('switch', { name: '显示海洋' }))
+      await click(page.getByRole('switch', { name: '显示海洋' }))
       await closeSettings()
     }
     assert.equal(await page.locator('html').evaluate(e => getComputedStyle(e).colorScheme), name === '浅色' ? 'light' : 'dark')
@@ -125,7 +125,7 @@ try {
     await click(page.getByRole('button', { name: 'ASCII', exact: true }))
   }
   if (!record) {
-    await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+    await click(page.getByRole('switch', { name: '显示海洋' }))
     for (const label of ['游动速度', '鲸鱼大小', '字符栅格（倍）', '尾迹强度']) {
       const input = page.getByRole('spinbutton', { name: label, exact: true })
       await input.fill('1')
@@ -144,7 +144,7 @@ try {
       await input.press('ArrowDown'); assert.equal(await input.inputValue(), '9.9')
       await input.fill('1')
     }
-    await click(page.getByRole('switch', { name: '显示鲸鱼' }))
+    await click(page.getByRole('switch', { name: '显示海洋' }))
     results.push('size, grid, speed and wake: 0.05/0.1 steps, 1 boundary, native spinner, manual typing and bounds PASS')
   }
   const start = (Date.now() - epoch) / 1000
@@ -157,7 +157,7 @@ try {
   }
   const reset = page.getByRole('button', { name: '恢复默认' })
   assert.ok(Number((await reset.evaluate(e => getComputedStyle(e).backgroundColor)).match(/\d+/)[0]) > 200, 'Official primary reset is light in dark mode')
-  const colorPicker = page.locator('input[type=color][aria-label="鲸鱼颜色"]')
+  const colorPicker = page.locator('input[type=color][aria-label="海洋颜色"]')
   await click(page.getByRole('button', { name: '玫瑰粉', exact: true }))
   assert.equal(await colorPicker.inputValue(), '#ec4899')
   const settingsMode = record ? 'ASCII' : '汉字'
@@ -195,7 +195,7 @@ try {
     assert.equal(await page.locator('[data-whales-glass]').count(), 0)
     await click(page.getByRole('switch', { name: '毛玻璃输入框' }))
     assert.equal(await page.locator('[data-composer-card]').evaluate(e => getComputedStyle(e, '::before').backdropFilter), 'blur(20px)')
-    await click(page.getByRole('switch', { name: '显示鲸鱼' })); assert.equal(await canvas.isVisible(), false)
+    await click(page.getByRole('switch', { name: '显示海洋' })); assert.equal(await canvas.isVisible(), false)
     await closeSettings(); await page.reload(); await editor.waitFor(); assert.equal(await canvas.isVisible(), false)
     await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认' })); await closeSettings()
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dsh-ascii-whales:v1')).color), '#4d6bfe')

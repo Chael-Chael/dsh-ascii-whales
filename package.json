@@ -1,6 +1,6 @@
 {
   "name": "dsh-ascii-whales",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Let whales drift through the quiet. An ASCII ocean and neutral frosted glass for DeepSeek Harness.",
   "license": "SEE LICENSE IN LICENSE",
   "keywords": [
@@ -27,6 +27,7 @@
     "README.en.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
+    "vendor/ascii-kanji-sharks/LICENSE",
     "assets/fonts/OFL-*.txt",
     "assets/fonts/README.md",
     "cordis.patch.yml"

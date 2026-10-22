@@ -41,7 +41,7 @@ export function mountBackgrounds(getSettings) {
       const active = settings.enabled && scene.dataset.contentPhase === 'hero'
       const dark = getComputedStyle(scene).colorScheme.includes('dark')
       canvas.hidden = !active; canvas.style.opacity = String(settings.opacity)
-      const hanzi = settings.glyphMode === 'hanzi'
+      const hanzi = settings.glyphMode !== 'ascii'
       const localFont = settings.fontSource === 'local' ? (hanzi ? settings.hanziFont : settings.asciiFont).trim() : ''
       const fallback = hanzi ? '"Whales Hanzi", serif' : '"Whales Mono", monospace'
       const fontFamily = localFont ? `${JSON.stringify(localFont)}, ${fallback}` : fallback
@@ -51,15 +51,15 @@ export function mountBackgrounds(getSettings) {
       scene.style.setProperty('--whales-blur', `${settings.blur}px`)
       scene.style.setProperty('--whales-glass-opacity', String(settings.glassOpacity))
       const nextPopulation = `${settings.count}/${settings.size}/${settings.gridScale}/${settings.fishCount}/${settings.glyphMode}/${fontFamily}`
-      const nextAppearance = `${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}`
+      const nextAppearance = `${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}/${settings.colorfulShimmer}/${settings.eyeColor}`
       if (engine && (!active || nextPopulation !== population)) { engine.destroy(); engine = undefined }
       if (!active) return
       if (!engine) {
         const whales = Array.from({ length: settings.count }, (_, i) => ({ kind: 'whale', size: settings.size * [1, .7, .84, .77, .65, .9][i % 6] }))
-        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color, settings.glyphMode)
+        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color, settings.glyphMode, settings.colorfulShimmer, settings.eyeColor)
         population = nextPopulation; appearance = nextAppearance
       } else if (appearance !== nextAppearance) {
-        engine.setAppearance(settings.speed, dark, settings.gridOpacity, settings.wake, settings.color); appearance = nextAppearance
+        engine.setAppearance(settings.speed, dark, settings.gridOpacity, settings.wake, settings.color, settings.colorfulShimmer, settings.eyeColor); appearance = nextAppearance
       }
     }
     const changes = new MutationObserver(update)

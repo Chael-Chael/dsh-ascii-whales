@@ -22,6 +22,7 @@ const DOT_RGB: [number, number, number][] = [
 ];
 const DOT_BASE_ALPHA = [1, 1, 1, 1, 1];
 const WAKE = DOT_RGB.length - 1;
+const COLORFUL_ACCENTS = ["#e0892c", "#e03a32", "#b44ae0", "#33c8cc", "#3cb54a", "#3150e8", "#d9c14a"];
 
 // Sparse glyphs on bright skin, dense glyphs in shadow, so the texture
 // reinforces the shading instead of fighting it.
@@ -288,6 +289,7 @@ export class AsciiRenderer {
   private rows = 0;
   private fontFamily = "ui-monospace, Menlo, monospace";
   private rgb = [77, 107, 254];
+  private eyeColor = '';
   private accents: string[] = [];
 
   private dotKind = new Uint8Array(0); // 0 none, 1 blue, 2 green, 3 red, 4 pale
@@ -351,14 +353,15 @@ export class AsciiRenderer {
     if (family) this.fontFamily = family;
   }
 
-  setTheme(dark: boolean, gridOpacity = this.gridOpacity, wake = this.wake, color?: string) {
+  setTheme(dark: boolean, gridOpacity = this.gridOpacity, wake = this.wake, color?: string, colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
     this.dark = dark;
     this.gridOpacity = gridOpacity;
     this.wake = wake;
     if (color) this.rgb = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16));
+    this.eyeColor = eyeColor === 'primary' ? '' : eyeColor === 'black' ? '#000000' : '#ffffff';
     const fish = this.rgb.map(c => Math.round(dark ? c * .6 + 102 : c * .7));
     this.fishStyles = FISH_ALPHAS.map(a => `rgba(${fish.join(',')},${a})`);
-    this.accents = [0, .2, .6, -.1, .35, -.2, .5].map(lift => `rgb(${this.rgb.map(c => Math.round(lift >= 0 ? c + (255 - c) * lift : c * (1 + lift))).join(',')})`);
+    this.accents = colorfulShimmer ? COLORFUL_ACCENTS : [0, .2, .6, -.1, .35, -.2, .5].map(lift => `rgb(${this.rgb.map(c => Math.round(lift >= 0 ? c + (255 - c) * lift : c * (1 + lift))).join(',')})`);
     this.dotStyles = [];
     for (let c = 0; c < DOT_RGB.length; c++) for (let l = 0; l < ALPHA_LEVELS; l++) {
       const a = (DOT_BASE_ALPHA[c] * (l + 1)) / ALPHA_LEVELS;
@@ -368,9 +371,9 @@ export class AsciiRenderer {
   }
 
   private bodyColor(level: number) {
-    // Anchor the upstream body's middle light level to the selected color in both themes.
-    const light = clamp((level - 120) / 120, -1, 1);
-    return `rgb(${this.rgb.map(c => Math.round(light < 0 ? c * (1 + light * .35) : c + (255 - c) * light * .25)).join(',')})`;
+    // Preserve upstream contrast from black to white, with the selected color at level 120.
+    const light = clamp((level - 120) / (level < 120 ? 120 : 135), -1, 1);
+    return `rgb(${this.rgb.map(c => Math.round(light < 0 ? c * (1 + light) : c + (255 - c) * light)).join(',')})`;
   }
 
   resize(width: number, height: number, dpr: number) {
@@ -840,7 +843,7 @@ export class AsciiRenderer {
         level = 226;
         glyph = glyphs.ridge[(key >>> 8) % glyphs.ridge.length];
       } else if (flag === FLAG_EYE) {
-        level = 12;
+        level = 46 + shade * 160;
         glyph = glyphs.eye;
       } else if (flag === FLAG_MARK) {
         level = 24 + shade * 22;
@@ -856,11 +859,12 @@ export class AsciiRenderer {
       level *= dim;
       if (this.sharkGlyph[i]) glyph = String.fromCharCode(this.sharkGlyph[i]);
       // Tinted per species; the classic tint is a cool blue-grey, like a back seen through deep water.
-      ctx.fillStyle = this.bodyColor(level);
+      ctx.fillStyle = flag === FLAG_EYE && this.eyeColor ? this.eyeColor : this.bodyColor(level);
       ctx.fillRect(x + 1, y + 1, cw - 1, ch - 1);
 
       let color: string;
-      if (flag === FLAG_EYE) color = "#9aa0ad";
+      if (flag === FLAG_EYE && this.eyeColor) color = this.eyeColor === '#000000' ? '#ffffff' : '#181818';
+      else if (flag === FLAG_EYE) color = shade > 0.55 ? '#181818' : '#eeeeee';
       else if (flag === FLAG_MARK) color = `rgb(${Math.round(70 * tr)},${Math.round(70 * tg)},${Math.round(70 * tb)})`;
       else if (roll < 0.09) color = this.accents[key % this.accents.length];
       else if (roll < 0.13) color = "#ffffff";

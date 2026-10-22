@@ -1,6 +1,10 @@
 import { AsciiRenderer } from "./renderer";
 import { World, type SharkSpec } from "./world";
 
+import { Ocean } from "../ascii-kanji-sharks/ocean.js";
+import { Painter } from "../ascii-kanji-sharks/painter.js";
+import { makeRandom } from "../ascii-kanji-sharks/util.js";
+
 const STEP = 1 / 60;
 const MAX_STEPS = 4;
 
@@ -9,8 +13,8 @@ const MAX_STEPS = 4;
  * pointer input, pausing off-screen, and prefers-reduced-motion.
  */
 export class OceanEngine {
-  private world: World;
-  private renderer: AsciiRenderer;
+  private world: World | Ocean;
+  private renderer: AsciiRenderer | Painter;
   private raf = 0;
   private last = 0;
   private acc = 0;
@@ -20,10 +24,11 @@ export class OceanEngine {
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
 
-  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' = 'ascii') {
-    this.world = new World(sharks, fishCount);
-    this.renderer = new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake, glyphMode);
-    this.renderer.setTheme(dark, gridOpacity, wake, color);
+  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' | 'kanji' = 'ascii', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
+    this.world = glyphMode === 'kanji' ? new Ocean(makeRandom(Math.floor(Math.random() * 1e9)), sharks?.length ?? 3, fishCount, sharks?.[0]?.size ?? 1) : new World(sharks, fishCount);
+    this.renderer = glyphMode === 'kanji' ? new Painter(canvas, gridScale) : new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake, glyphMode);
+    if (this.renderer instanceof AsciiRenderer) this.renderer.setTheme(dark, gridOpacity, wake, color, colorfulShimmer, eyeColor);
+    else this.renderer.setTheme(dark, gridOpacity, wake, color, eyeColor);
     this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
     this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -44,8 +49,10 @@ export class OceanEngine {
 
     this.resize();
     // Canvas text can't trigger a webfont load; redraw the still frame when it arrives.
-    document.fonts?.load(`${glyphMode === 'hanzi' ? 400 : 600} 16px ${getComputedStyle(canvas).fontFamily}`, glyphMode === 'hanzi' ? '鲸目鳍尾' : 'S8@').then(() => {
-      if (!this.disposed && this.reducedMotion.matches) this.drawStill();
+    document.fonts?.load(`${glyphMode !== 'ascii' ? 400 : 600} 16px ${getComputedStyle(canvas).fontFamily}`, glyphMode !== 'ascii' ? '鲸目鳍尾鮫鰓鰭鰯鰊鯵鯖' : 'S8@').then(() => {
+      if (this.disposed) return;
+      this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
+      if (this.reducedMotion.matches) this.drawStill();
     }).catch(() => { /* Canvas keeps the system fallback if font loading is blocked. */ });
     this.schedule();
   }
@@ -63,9 +70,10 @@ export class OceanEngine {
     document.removeEventListener("visibilitychange", this.scheduleVisibility);
   }
 
-  setAppearance(speed: number, dark: boolean, gridOpacity = .05, wake = 1, color = '#4d6bfe') {
+  setAppearance(speed: number, dark: boolean, gridOpacity = .05, wake = 1, color = '#4d6bfe', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
     this.speed = speed;
-    this.renderer.setTheme(dark, gridOpacity, wake, color);
+    if (this.renderer instanceof AsciiRenderer) this.renderer.setTheme(dark, gridOpacity, wake, color, colorfulShimmer, eyeColor);
+    else this.renderer.setTheme(dark, gridOpacity, wake, color, eyeColor);
     if (this.reducedMotion.matches) this.drawStill();
   }
 
@@ -99,16 +107,21 @@ export class OceanEngine {
       steps++;
     }
     if (steps === maxSteps) this.acc = 0;
-    this.renderer.render(this.world, dt * this.speed);
+    this.render(dt * this.speed);
     this.raf = requestAnimationFrame(this.frame);
   };
+
+  private render(dt: number) {
+    if (this.world instanceof World && this.renderer instanceof AsciiRenderer) this.renderer.render(this.world, dt);
+    else if (this.world instanceof Ocean && this.renderer instanceof Painter) this.renderer.render(this.world, dt);
+  }
 
   /** Reduced motion: let the ecosystem settle, then show a single frame. */
   private drawStill() {
     if (this.world.time < 4) {
       for (let i = 0; i < 240; i++) this.world.step(STEP);
     }
-    this.renderer.render(this.world, STEP);
+    this.render(STEP);
   }
 
   private onMotionPreference = () => {

@@ -272,6 +272,7 @@ export function paintGrid(g: CanvasRenderingContext2D, W: number, H: number, cw:
 }
 
 export class AsciiRenderer {
+  bodySwing = 1;
   private ctx: CanvasRenderingContext2D;
   private bg: HTMLCanvasElement;
   private dpr = 1;
@@ -374,7 +375,7 @@ export class AsciiRenderer {
     this.width = width;
     this.height = height;
     this.dpr = dpr;
-    [this.cw, this.ch] = cellSize(width, this.gridScale, this.glyphMode === 'hanzi');
+    [this.cw, this.ch] = cellSize(this.gridScale, this.glyphMode === 'hanzi');
     this.cols = Math.ceil(width / this.cw);
     this.rows = Math.ceil(height / this.ch);
 
@@ -696,7 +697,7 @@ export class AsciiRenderer {
         const tl = Math.hypot(tx, ty) || 1;
         tx /= tl;
         ty /= tl;
-        const amp = L * 0.05 * (0.1 + 0.9 * Math.pow(s, 1.8)) * swim;
+        const amp = L * 0.05 * (0.1 + 0.9 * Math.pow(s, 1.8)) * swim * this.bodySwing;
         const off = amp * Math.sin(sh.phase - s * 5.2);
         spine[k * 2] = n[k * 2] - ty * off;
         spine[k * 2 + 1] = n[k * 2 + 1] + tx * off;

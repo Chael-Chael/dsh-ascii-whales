@@ -54,8 +54,11 @@ Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded he
 | Whales | 3 | 1–20 |
 | Size | 1.2× | 0.1–10× |
 | Speed | 0.65× | 0.1–10× |
+| Body swing amplitude | 0.8× | 0–3×; zero removes body waves, while the spine still follows turns |
+| Turning agility | 0.7× | 0.1–3×; higher values allow tighter turns |
+| Tail-beat frequency | 0.8× | 0.1–5×; independent of swimming speed |
 | Scene opacity | 1 | 0–1; 1 is fully opaque |
-| Cell size | 0.8× | 0.1–10× |
+| Cell size | 1× | 0.1–10× |
 | Background grid opacity | 0.05 | 0–1 |
 | Small fish | 170 | 0–1000 |
 | Wake intensity | 1 | 0–10 |
@@ -97,4 +100,4 @@ All three styles support visibility, count, size, speed, opacity, cell size, gri
 
 Kanji shares the stackedlol/ascii-sharks simulation, pursuit, turning and body wave with ASCII / Hanzi, retaining the whale silhouette with Kanji shading and text effects.
 
-Character cells use comparable areas across styles: ASCII retains narrow cells, while Hanzi and Kanji share square cells that respond to canvas width. The same multiplier gives similar grain density; full-width cells retain a 4 px minimum.
+Character cells use comparable areas across styles: ASCII retains narrow cells, while Hanzi and Kanji share square cells. Cell sizes are fixed in CSS pixels, independent of window width: at 1×, ASCII uses 8×12 px and Hanzi/Kanji use 10×10 px. The same multiplier gives similar grain density; full-width cells retain a 4 px minimum.

@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { readFileSync, mkdirSync, writeFileSync, copyFileSync } from 'node:fs'
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import assert from 'node:assert/strict'
@@ -95,6 +95,7 @@ try {
       assert.equal(await page.getByRole('spinbutton', { name: '字符栅格（倍）', exact: true }).inputValue(), String(defaults.gridScale))
       assert.equal(await page.getByRole('spinbutton', { name: '鲸鱼大小', exact: true }).inputValue(), String(defaults.size))
       assert.equal(await page.getByRole('spinbutton', { name: '游动速度', exact: true }).inputValue(), String(defaults.speed))
+      for (const [key, label] of [['bodySwing', '身体摆动幅度'], ['turnAgility', '转弯灵活度'], ['tailFrequency', '摆尾频率']]) assert.equal(await page.getByRole('spinbutton', { name: label, exact: true }).inputValue(), String(defaults[key]))
       await click(page.getByRole('switch', { name: '显示海洋' }))
       await click(page.getByRole('switch', { name: '显示海洋' }))
       await closeSettings()
@@ -118,7 +119,7 @@ try {
     await pause(record ? 2000 : 200)
     await screenshot(id)
     if (record) await pause(5000)
-    scenes.push({ id, glyphMode: mode, speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
+    scenes.push({ bodySwing: defaults.bodySwing, turnAgility: defaults.turnAgility, tailFrequency: defaults.tailFrequency, id, glyphMode: mode, speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
     results.push(id + ': background, animation, native theme, input click-through PASS')
   }
   await section('ASCII 鲸鱼')
@@ -170,7 +171,7 @@ try {
   await screenshot('settings-dark')
   if (record) await pause(2500)
   await closeSettings(); await pause(record ? 2500 : 100)
-  scenes.push({ id: 'settings', glyphMode: record ? 'ascii' : 'hanzi', speed: record ? defaults.speed : .7, gridScale: record ? defaults.gridScale : 1.5, size: record ? defaults.size : .8, start, duration: (Date.now() - epoch) / 1000 - start })
+  scenes.push({ bodySwing: defaults.bodySwing, turnAgility: defaults.turnAgility, tailFrequency: defaults.tailFrequency, id: 'settings', glyphMode: record ? 'ascii' : 'hanzi', speed: record ? defaults.speed : .7, gridScale: record ? defaults.gridScale : 1.5, size: record ? defaults.size : .8, start, duration: (Date.now() - epoch) / 1000 - start })
   if (record) {
     await section('ASCII 鲸鱼'); await click(page.getByRole('button', { name: '恢复默认', exact: true }))
     assert.equal(await page.getByRole('button', { name: 'ASCII', exact: true }).getAttribute('aria-pressed'), 'true')
@@ -185,7 +186,7 @@ try {
     await click(page.getByRole('menuitem', { name: 'SimSun', exact: true }))
     await screenshot('fonts-dark'); await pause(1500)
     await click(page.getByRole('button', { name: '内置默认', exact: true })); await closeSettings(); await pause(1500)
-    scenes.push({ id: 'fonts', glyphMode: 'ascii', speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
+    scenes.push({ bodySwing: defaults.bodySwing, turnAgility: defaults.turnAgility, tailFrequency: defaults.tailFrequency, id: 'fonts', glyphMode: 'ascii', speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
   }
   if (record) {
     await theme('浅色')
@@ -205,7 +206,7 @@ try {
     await hint('虎鲸 × Kanji · 字随鲸游'); await pause(5000)
     await screenshot('orca-kanji-light')
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dsh-ascii-whales:v1')).species), 'orca')
-    scenes.push({ id: 'species', species: ['humpback', 'orca'], glyphModes: ['ascii', 'kanji'], speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
+    scenes.push({ bodySwing: defaults.bodySwing, turnAgility: defaults.turnAgility, tailFrequency: defaults.tailFrequency, id: 'species', species: ['humpback', 'orca'], glyphModes: ['ascii', 'kanji'], speed: defaults.speed, gridScale: defaults.gridScale, size: defaults.size, start, duration: (Date.now() - epoch) / 1000 - start })
     results.push('species: Humpback → Orca, ASCII → Kanji, saved selection PASS')
   }
   if (!record) {
@@ -289,8 +290,9 @@ try {
   results.push('browser page errors: 0')
   if (record) {
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dsh-ascii-whales:v1')))
+    for (const key of ['bodySwing', 'turnAgility', 'tailFrequency']) assert.equal(saved[key], defaults[key])
     assert.equal(saved.speed, defaults.speed); assert.equal(saved.size, defaults.size); assert.equal(saved.gridScale, defaults.gridScale)
-    results.push(`all recordings: speed ${defaults.speed}, size ${defaults.size}, grid ${defaults.gridScale}; reset verified PASS`)
+    results.push(`all recordings: swing ${defaults.bodySwing}, agility ${defaults.turnAgility}, tail frequency ${defaults.tailFrequency}, speed ${defaults.speed}, size ${defaults.size}, grid ${defaults.gridScale}; reset verified PASS`)
   }
   const raw = record ? await page.video().path() : null
   await context.close()
@@ -302,7 +304,7 @@ try {
       execFileSync('ffmpeg', ['-y', '-i', mp4, '-filter_complex', 'fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4', '-loop', '0', gif], { stdio: 'pipe' })
       const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'quiet', '-show_format', '-show_streams', '-of', 'json', gif], { encoding: 'utf8' }))
       assert.equal(probe.streams[0].width, 960); assert.ok(Number(probe.format.duration) > 5)
-      copyFileSync(gif, join(output, scene.id + '.gif'))
+      writeFileSync(join(output, scene.id + '.gif'), readFileSync(gif))
     }
     writeFileSync(join(output, 'manifest.json'), JSON.stringify({ viewport: [1280, 800], gif: [960, 600], fps: 15, scenes, results }, null, 2) + '\n')
   }

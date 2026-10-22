@@ -10,78 +10,105 @@
   "fps": 15,
   "scenes": [
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "light",
       "glyphMode": "ascii",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 18.031,
-      "duration": 7.4510000000000005
+      "start": 17.997,
+      "duration": 7.32
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "dark",
       "glyphMode": "ascii",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 40.394,
-      "duration": 7.530000000000001
+      "start": 36.01,
+      "duration": 7.331000000000003
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "hanzi-light",
       "glyphMode": "hanzi",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 58.872,
-      "duration": 7.385000000000005
+      "start": 53.614,
+      "duration": 7.396000000000001
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "hanzi-dark",
       "glyphMode": "hanzi",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 77.483,
-      "duration": 7.438999999999993
+      "start": 70.512,
+      "duration": 7.397999999999996
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "kanji-light",
       "glyphMode": "kanji",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 96.101,
-      "duration": 7.659000000000006
+      "start": 88.539,
+      "duration": 7.471999999999994
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "kanji-dark",
       "glyphMode": "kanji",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 114.026,
-      "duration": 7.609000000000009
+      "start": 104.517,
+      "duration": 7.483000000000004
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "settings",
       "glyphMode": "ascii",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 125.272,
-      "duration": 13.850999999999985
+      "start": 115.764,
+      "duration": 11.912000000000006
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "fonts",
       "glyphMode": "ascii",
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 142.349,
-      "duration": 12.590000000000003
+      "start": 130.548,
+      "duration": 9.740999999999985
     },
     {
+      "bodySwing": 0.8,
+      "turnAgility": 0.7,
+      "tailFrequency": 0.8,
       "id": "species",
       "species": [
         "humpback",
@@ -92,10 +119,10 @@
         "kanji"
       ],
       "speed": 0.65,
-      "gridScale": 0.8,
+      "gridScale": 1,
       "size": 1.2,
-      "start": 164.722,
-      "duration": 24.897999999999996
+      "start": 148.089,
+      "duration": 22.982
     }
   ],
   "results": [
@@ -107,6 +134,6 @@
     "kanji-dark: background, animation, native theme, input click-through PASS",
     "species: Humpback → Orca, ASCII → Kanji, saved selection PASS",
     "browser page errors: 0",
-    "all recordings: speed 0.65, size 1.2, grid 0.8; reset verified PASS"
+    "all recordings: swing 0.8, agility 0.7, tail frequency 0.8, speed 0.65, size 1.2, grid 1; reset verified PASS"
   ]
 }

@@ -12,7 +12,7 @@ test('untrusted persisted settings are bounded and recover safely', () => {
   assert.equal(defaults.speed, .65)
   assert.equal(normalize({ speed: 1 }).speed, 1)
   assert.equal(defaults.size, 1.2)
-  assert.equal(defaults.gridScale, .8)
+  assert.equal(defaults.gridScale, 1)
   assert.equal(normalize({ size: 1, gridScale: 1 }).size, 1, 'Existing preferences are preserved')
   assert.equal(normalize({ size: 1, gridScale: 1 }).gridScale, 1)
   assert.deepEqual(normalize(null), defaults)
@@ -70,6 +70,10 @@ test('cell size, hidden grid and selected color reach the upstream rasterizer', 
     renderer.setTheme(true, 0, 0, color)
     assert.deepEqual([60, 120, 200].map(level => renderer.bodyColor(level)), shades)
   }
+  renderer.bodySwing = 0; renderer.render(world, 1 / 60)
+  assert.deepEqual([...renderer.spine], [...world.sharks[0].nodes])
+  renderer.bodySwing = 2; renderer.render(world, 1 / 60)
+  assert.ok(renderer.spine.some((v, i) => Math.abs(v - world.sharks[0].nodes[i]) > 1))
   // A neutral level-120 midtone reproduces the upstream grayscale range exactly.
   renderer.setTheme(false, 0, 0, '#787878')
   for (const level of [0, 12, 40, 46, 60, 120, 160, 200, 226, 255]) {
@@ -196,5 +200,47 @@ test('colorful shimmer toggles rendered accents without changing the selected bo
       assert.equal(accents.some(color => colors.has(color)), enabled, `${mode}: colorful accents ${enabled}`)
       if (enabled) assert.ok(colors.has('#e03a32'), 'Original red accent is restored')
     }
+  }
+})
+
+
+test('motion controls bound input, change turning and decouple tail phase from travel', () => {
+  for (const key of ['bodySwing', 'turnAgility', 'tailFrequency']) {
+    assert.equal(normalize({ [key]: NaN })[key], defaults[key])
+    assert.equal(normalize({ [key]: -10 })[key], ranges[key][0])
+    assert.equal(normalize({ [key]: 100 })[key], ranges[key][1])
+  }
+  function ocean() {
+    const w = new World([{ kind: 'whale', size: 1 }], 0)
+    w.resize(1000, 760, 8, 12)
+    return w
+  }
+  const phases = []
+  for (const speed of [.1, .65, 2]) {
+    const w = ocean(), before = w.sharks[0].phase
+    for (let i = 0; i < Math.round(600 * speed); i++) w.step(1 / 60, (1 / 60) * .65 / speed)
+    phases.push(w.sharks[0].phase - before)
+  }
+  assert.ok(phases.every(p => Math.abs(p - phases[0]) < 1e-8), 'Equal wall time gives equal tail phase at different travel speeds')
+  const slow = ocean(), fast = ocean()
+  slow.tailFrequency = .5; fast.tailFrequency = 2
+  const a = slow.sharks[0].phase, b = fast.sharks[0].phase
+  slow.step(1 / 60); fast.step(1 / 60)
+  assert.ok(Math.abs((fast.sharks[0].phase - b) / (slow.sharks[0].phase - a) - 4) < 1e-8)
+  const turns = [.1, 3].map(agility => {
+    const w = ocean(), sh = w.sharks[0]
+    w.turnAgility = agility
+    sh.nodes[0] = -200; sh.nodes[1] = 380; sh.heading = Math.PI / 2; sh.hunger = 0
+    const before = sh.heading
+    w.step(1 / 60)
+    assert.ok([...sh.nodes].every(Number.isFinite))
+    return Math.abs(sh.heading - before)
+  })
+  assert.ok(turns[1] > turns[0] * 4, 'Higher agility turns back faster')
+  for (const kind of ['whale', 'orca']) {
+    const w = new World([{ kind, size: 1.2 }], 30); w.resize(360, 600, 8, 12)
+    w.turnAgility = 3; w.tailFrequency = 5
+    for (let i = 0; i < 600; i++) w.step(1 / 60)
+    assert.ok(w.sharks.every(sh => [...sh.nodes, sh.phase, sh.heading].every(Number.isFinite)))
   }
 })

@@ -22,11 +22,14 @@ export class OceanEngine {
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
 
-  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' | 'kanji' = 'ascii', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
+  constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], private speed = 1, dark = false, gridScale = 1, gridOpacity = .05, fishCount?: number, wake = 1, color = '#4d6bfe', glyphMode: 'ascii' | 'hanzi' | 'kanji' = 'ascii', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary', bodySwing = 1, turnAgility = 1, tailFrequency = 1) {
     this.world = new World(sharks, fishCount);
     this.renderer = glyphMode === 'kanji' ? new Painter(canvas, gridScale) : new AsciiRenderer(canvas, dark, gridScale, gridOpacity, wake, glyphMode);
     if (this.renderer instanceof AsciiRenderer) this.renderer.setTheme(dark, gridOpacity, wake, color, colorfulShimmer, eyeColor);
     else this.renderer.setTheme(dark, gridOpacity, wake, color, eyeColor);
+    this.renderer.bodySwing = bodySwing;
+    this.world.turnAgility = turnAgility;
+    this.world.tailFrequency = tailFrequency;
     this.renderer.setFontFamily(getComputedStyle(canvas).fontFamily);
     this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -68,8 +71,11 @@ export class OceanEngine {
     document.removeEventListener("visibilitychange", this.scheduleVisibility);
   }
 
-  setAppearance(speed: number, dark: boolean, gridOpacity = .05, wake = 1, color = '#4d6bfe', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary') {
+  setAppearance(speed: number, dark: boolean, gridOpacity = .05, wake = 1, color = '#4d6bfe', colorfulShimmer = false, eyeColor: 'primary' | 'black' | 'white' = 'primary', bodySwing = 1, turnAgility = 1, tailFrequency = 1) {
     this.speed = speed;
+    this.renderer.bodySwing = bodySwing;
+    this.world.turnAgility = turnAgility;
+    this.world.tailFrequency = tailFrequency;
     if (this.renderer instanceof AsciiRenderer) this.renderer.setTheme(dark, gridOpacity, wake, color, colorfulShimmer, eyeColor);
     else this.renderer.setTheme(dark, gridOpacity, wake, color, eyeColor);
     if (this.reducedMotion.matches) this.drawStill();
@@ -100,7 +106,8 @@ export class OceanEngine {
     let steps = 0;
     const maxSteps = Math.ceil(MAX_STEPS * Math.max(1, this.speed));
     while (this.acc >= STEP && steps < maxSteps) {
-      this.world.step(STEP);
+      // Keep tail rhythm in wall time, calibrated to the original 0.65x cruise.
+      this.world.step(STEP, STEP * 0.65 / this.speed);
       this.acc -= STEP;
       steps++;
     }
@@ -116,7 +123,7 @@ export class OceanEngine {
   /** Reduced motion: let the ecosystem settle, then show a single frame. */
   private drawStill() {
     if (this.world.time < 4) {
-      for (let i = 0; i < 240; i++) this.world.step(STEP);
+      for (let i = 0; i < 240; i++) this.world.step(STEP, STEP * 0.65 / this.speed);
     }
     this.render(STEP);
   }

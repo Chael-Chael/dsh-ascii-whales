@@ -1,3 +1,11 @@
+# 0.1.5 validation · 2026-10-22
+
+- Fixed CSS-pixel cell sizes across window resizing. Default grid scale: 1.
+- Added body swing, turning agility and independent tail-beat frequency controls; defaults: 0.8 / 0.7 / 0.8. Other numeric defaults match the approved settings screenshot.
+- Typecheck, build and 10 tests pass, including motion ranges, amplitude rendering, turning response and tail rhythm independent of travel speed. Isolated Edge checks cover all three styles, saved motion settings and reset.
+- All nine scenes were recorded with the new motion defaults; recording and reset assertions pass with zero browser page errors. See `media/manifest.json` and `media/checks.json` for current media evidence.
+- Desktop and other browsers: NOT_RUN. Publication is verified separately through the release workflow.
+
 # 0.1.4 validation · 2026-10-22
 
 - Calibrated ASCII/Hanzi/Kanji cell density and changed defaults to speed 0.65, size 1.2 and grid scale 0.8. Existing saved preferences are preserved.

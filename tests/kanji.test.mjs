@@ -129,11 +129,16 @@ test('Kanji whale anatomy, color, grid, wake and font controls reach the painter
   painter.frame++; painter.touched.length = 0; painter.placeFish(ocean)
   assert.equal(painter.touched.length, 5)
   assert.ok(painter.touched.every(i => typeof painter.glyph[i] === 'string' && painter.glyph[i].length > 0))
+  painter.bodySwing = 0; painter.buildSpine(ocean.sharks[0])
+  assert.deepEqual([...painter.spine], [...ocean.sharks[0].nodes])
+  painter.bodySwing = 2; painter.buildSpine(ocean.sharks[0])
+  assert.ok(painter.spine.some((v, i) => Math.abs(v - ocean.sharks[0].nodes[i]) > 1))
+  painter.bodySwing = 1
   painter.setFontFamily('Custom Kanji, serif')
   assert.equal(painter.atlas.family, 'Custom Kanji, serif')
   painter.render(ocean, 1 / 60)
   assert.ok(!painter.glyph.some(g => ['鰓', '鮫', '鱶'].includes(g)))
-  for (const [scale, cell] of [[.1, 4], [1, 12], [10, 120]]) {
+  for (const [scale, cell] of [[.1, 4], [1, 10], [10, 96]]) {
     const p = new Painter(canvas(), scale); p.resize(1200, 800, 1)
     assert.equal(p.cellWidth, cell)
   }
@@ -142,7 +147,12 @@ test('Kanji whale anatomy, color, grid, wake and font controls reach the painter
     const h = new AsciiRenderer(canvas(), false, scale, 0, 0, 'hanzi')
     const k = new Painter(canvas(), scale)
     for (const renderer of [a, h, k]) renderer.resize(width, 800, dpr)
-    assert.equal(h.cellWidth, k.cellWidth, 'Hanzi and Kanji share responsive square cells')
+    for (const renderer of [a, h, k]) {
+      const initialCell = [renderer.cellWidth, renderer.cellHeight]
+      renderer.resize(2400, 1200, dpr === 1 ? 2 : 1)
+      assert.deepEqual([renderer.cellWidth, renderer.cellHeight], initialCell, 'Resize and DPR changes preserve CSS cell size')
+    }
+    assert.equal(h.cellWidth, k.cellWidth, 'Hanzi and Kanji share fixed square cells')
     assert.equal(h.cellHeight, k.cellHeight)
     const ratio = h.cellWidth * h.cellHeight / (a.cellWidth * a.cellHeight)
     assert.ok(Math.abs(ratio - 1) < .15, `Comparable grain density at ${width}px / ${scale}x / DPR ${dpr}`)

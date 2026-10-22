@@ -7,5 +7,5 @@
   "kanji-dark: background, animation, native theme, input click-through PASS",
   "species: Humpback → Orca, ASCII → Kanji, saved selection PASS",
   "browser page errors: 0",
-  "all recordings: speed 0.65, size 1.2, grid 0.8; reset verified PASS"
+  "all recordings: swing 0.8, agility 0.7, tail frequency 0.8, speed 0.65, size 1.2, grid 1; reset verified PASS"
 ]

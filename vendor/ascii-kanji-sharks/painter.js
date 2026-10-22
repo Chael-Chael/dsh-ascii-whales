@@ -62,8 +62,9 @@ export class Painter {
   constructor(canvas, gridScale = 1) {
     this.shape = humpback;
     this.gridScale = gridScale;
+    this.bodySwing = 1;
     // shortcut: keep cells at least 4 px for legibility and raster cost; revisit for finer grids.
-    this.cell = cellSize(0, gridScale, true)[0];
+    this.cell = cellSize(gridScale, true)[0];
     this.wake = 1;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: true });
@@ -113,7 +114,7 @@ export class Painter {
   }
 
   resize(width, height, dpr) {
-    const cell = cellSize(width, this.gridScale, true)[0];
+    const cell = cellSize(this.gridScale, true)[0];
     this.width = width;
     this.height = height;
     this.cell = cell;
@@ -261,7 +262,7 @@ export class Painter {
       const tl = Math.hypot(tx, ty) || 1;
       tx /= tl;
       ty /= tl;
-      const off = L * 0.05 * (0.1 + 0.9 * Math.pow(s, 1.8)) * beat * Math.sin(sh.phase - s * 5.2);
+      const off = L * 0.05 * (0.1 + 0.9 * Math.pow(s, 1.8)) * beat * this.bodySwing * Math.sin(sh.phase - s * 5.2);
       spine[k * 2] = n[k * 2] - ty * off;
       spine[k * 2 + 1] = n[k * 2 + 1] + tx * off;
     }

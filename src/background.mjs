@@ -51,15 +51,15 @@ export function mountBackgrounds(getSettings) {
       scene.style.setProperty('--whales-blur', `${settings.blur}px`)
       scene.style.setProperty('--whales-glass-opacity', String(settings.glassOpacity))
       const nextPopulation = `${settings.species}/${settings.count}/${settings.size}/${settings.gridScale}/${settings.fishCount}/${settings.glyphMode}/${fontFamily}`
-      const nextAppearance = `${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}/${settings.colorfulShimmer}/${settings.eyeColor}`
+      const nextAppearance = `${settings.bodySwing}/${settings.turnAgility}/${settings.tailFrequency}/${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}/${settings.colorfulShimmer}/${settings.eyeColor}`
       if (engine && (!active || nextPopulation !== population)) { engine.destroy(); engine = undefined }
       if (!active) return
       if (!engine) {
         const whales = Array.from({ length: settings.count }, (_, i) => ({ kind: settings.species === 'orca' ? 'orca' : 'whale', size: settings.size * [1, .7, .84, .77, .65, .9][i % 6] }))
-        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color, settings.glyphMode, settings.colorfulShimmer, settings.eyeColor)
+        engine = new OceanEngine(canvas, whales, settings.speed, dark, settings.gridScale, settings.gridOpacity, settings.fishCount, settings.wake, settings.color, settings.glyphMode, settings.colorfulShimmer, settings.eyeColor, settings.bodySwing, settings.turnAgility, settings.tailFrequency)
         population = nextPopulation; appearance = nextAppearance
       } else if (appearance !== nextAppearance) {
-        engine.setAppearance(settings.speed, dark, settings.gridOpacity, settings.wake, settings.color, settings.colorfulShimmer, settings.eyeColor); appearance = nextAppearance
+        engine.setAppearance(settings.speed, dark, settings.gridOpacity, settings.wake, settings.color, settings.colorfulShimmer, settings.eyeColor, settings.bodySwing, settings.turnAgility, settings.tailFrequency); appearance = nextAppearance
       }
     }
     const changes = new MutationObserver(update)

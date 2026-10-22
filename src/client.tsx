@@ -9,7 +9,7 @@ import { mountBackgrounds } from './background.mjs'
 
 const en = {
   title: 'ASCII Whales', description: 'Let whales drift through the quiet, and thoughts rise to the surface.',
-  enabled: 'Show ocean', count: 'Whale count', speed: 'Swimming speed', size: 'Whale size', opacity: 'Opacity',
+  enabled: 'Show ocean', count: 'Whale count', speed: 'Swimming speed', bodySwing: 'Body swing amplitude', turnAgility: 'Turning agility', tailFrequency: 'Tail-beat frequency', size: 'Whale size', opacity: 'Opacity',
   species: 'Whale species', humpback: 'Humpback', orca: 'Orca',
   eyeColor: 'Eye background', primary: 'Follow main color', black: 'Black', white: 'White',
   colorfulShimmer: 'Colorful shimmer', shimmerHint: 'ASCII / Hanzi only. Off: shades of your selected color. On: original seven-color accents.',
@@ -27,7 +27,7 @@ const en = {
 }
 const zh: typeof en = {
   title: 'ASCII 鲸鱼', description: '让鲸群游过留白，让思绪慢慢浮出水面。',
-  enabled: '显示海洋', count: '鲸鱼数量', speed: '游动速度', size: '鲸鱼大小', opacity: '透明度',
+  enabled: '显示海洋', count: '鲸鱼数量', speed: '游动速度', bodySwing: '身体摆动幅度', turnAgility: '转弯灵活度', tailFrequency: '摆尾频率', size: '鲸鱼大小', opacity: '透明度',
   species: '鲸鱼种类', humpback: '座头鲸', orca: '虎鲸',
   eyeColor: '眼睛底色', primary: '跟随主色', black: '黑色', white: '白色',
   colorfulShimmer: '彩色闪烁', shimmerHint: '适用于 ASCII / 汉字。关闭时使用主色深浅，开启后使用原版七色点缀。',

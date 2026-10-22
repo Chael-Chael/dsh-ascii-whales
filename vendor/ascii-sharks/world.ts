@@ -86,6 +86,8 @@ const FISH_FLEE_K = 1100;
 const BLIND_COS = -0.6; // ~127° either side of the heading is visible
 
 export class World {
+  turnAgility = 1;
+  tailFrequency = 1;
   width = 0;
   height = 0;
   time = 0;
@@ -225,11 +227,11 @@ export class World {
     }
   }
 
-  step(dt: number) {
+  step(dt: number, beatDt = dt) {
     this.time += dt;
     this.rebuildHash();
     this.stepFish(dt);
-    this.stepSharks(dt);
+    this.stepSharks(dt, beatDt);
     this.respawn();
   }
 
@@ -456,7 +458,7 @@ export class World {
     }
   }
 
-  private stepSharks(dt: number) {
+  private stepSharks(dt: number, beatDt: number) {
     const { sharks, width: W, height: H, time } = this;
     const minSide = Math.min(W, H);
     const cxW = W / 2;
@@ -550,7 +552,7 @@ export class World {
       const desired = Math.atan2(dy, dx);
       // Sharks can't pivot on the spot: the turning circle grows with speed.
       const agility = Math.min(hunting ? 1.7 + closing : 0.8, sh.speed / (L * 0.22));
-      const maxTurn = agility * dt;
+      const maxTurn = agility * this.turnAgility * dt;
       const turned = clamp(angleDiff(sh.heading, desired), -maxTurn, maxTurn);
       sh.heading += turned;
       sh.turn += (turned / dt - sh.turn) * Math.min(1, dt * 3);
@@ -558,7 +560,7 @@ export class World {
       const cruise = 30 + L * 0.04;
       const targetSpeed = hunting ? cruise * (1.45 + closing * 1.5) : cruise;
       sh.speed += (targetSpeed - sh.speed) * Math.min(1, dt * 1.1);
-      sh.phase += dt * (2 + sh.speed / 24);
+      sh.phase += beatDt * this.tailFrequency * (2 + (30 + L * 0.04) / 24);
 
       nodes[0] += Math.cos(sh.heading) * sh.speed * dt;
       nodes[1] += Math.sin(sh.heading) * sh.speed * dt;
@@ -566,7 +568,7 @@ export class World {
       // Follow-the-leader spine, with a stiffness limit per joint so the
       // body bends into a C at most and never folds back on itself.
       const seg = L / (SHARK_NODES - 1);
-      const maxBend = 0.16;
+      const maxBend = 0.16 * this.turnAgility;
       let prevAngle = sh.heading + Math.PI;
       for (let k = 1; k < SHARK_NODES; k++) {
         const px = nodes[(k - 1) * 2];

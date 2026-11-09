@@ -13,7 +13,8 @@ const en = {
   species: 'Whale species', humpback: 'Humpback', orca: 'Orca',
   eyeColor: 'Eye background', primary: 'Follow main color', black: 'Black', white: 'White',
   colorfulShimmer: 'Colorful shimmer', shimmerHint: 'ASCII / Hanzi only. Off: shades of your selected color. On: original seven-color accents.',
-  glass: 'Frosted-glass composer', blur: 'Glass blur (px)',
+  showInChat: 'Show whales in chat', chatHint: 'Keep the ocean behind conversation messages. Frosted glass adds a layered mist behind text; adjust glass blur and opacity for readability.',
+  glass: 'Frosted-glass background and composer', blur: 'Glass blur (px)',
   gridScale: 'Cell size (×)', gridOpacity: 'Grid opacity', glassOpacity: 'Glass opacity',
   fishCount: 'Small fish count', wake: 'Wake intensity', color: 'Ocean color',
   glyphMode: 'Character style', ascii: 'ASCII', hanzi: 'Hanzi', kanji: 'Kanji',
@@ -31,7 +32,8 @@ const zh: typeof en = {
   species: '鲸鱼种类', humpback: '座头鲸', orca: '虎鲸',
   eyeColor: '眼睛底色', primary: '跟随主色', black: '黑色', white: '白色',
   colorfulShimmer: '彩色闪烁', shimmerHint: '适用于 ASCII / 汉字。关闭时使用主色深浅，开启后使用原版七色点缀。',
-  glass: '毛玻璃输入框', blur: '玻璃模糊（px）',
+  showInChat: '聊天中显示鲸鱼', chatHint: '让海洋持续显示在对话消息后方。开启毛玻璃可在文字后方增加多层雾面，调节玻璃模糊与不透明度可改善可读性。',
+  glass: '毛玻璃背景与输入框', blur: '玻璃模糊（px）',
   gridScale: '字符栅格（倍）', gridOpacity: '底纹网格透明度', glassOpacity: '玻璃不透明度',
   fishCount: '小鱼数量', wake: '尾迹强度', color: '海洋颜色',
   glyphMode: '字符风格', ascii: 'ASCII', hanzi: '汉字', kanji: 'Kanji',
@@ -82,6 +84,10 @@ export function apply(ctx: Context) {
       <div><h2 style={{ margin: '0 0 8px', fontSize: 20 }}>{t('title')}</h2><p style={{ color: 'var(--dsw-fg-muted)' }}>{t('description')}</p></div>
       <div className="setCard setCardOpen" style={{ padding: 20, display: 'grid', gap: 22 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('enabled')}</span><Switch label={t('enabled')} checked={value.enabled} onChange={enabled => save({ ...value, enabled })}/></div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('showInChat')}</span><Switch label={t('showInChat')} checked={value.showInChat} onChange={showInChat => save({ ...value, showInChat })}/></div>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--dsw-fg-muted)', lineHeight: 1.6 }}>{t('chatHint')}</p>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('glass')}</span><Switch label={t('glass')} checked={value.glass} onChange={glass => save({ ...value, glass })}/></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <span>{t('species')}</span><div role="group" aria-label={t('species')} style={{ display: 'flex', gap: 8 }}>

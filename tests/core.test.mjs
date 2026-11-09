@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { defaults, ranges, normalize, readSettings, fractionalSteps, inputStep } from '../src/settings.mjs'
+import { defaults, ranges, normalize, readSettings, storageKey, fractionalSteps, inputStep } from '../src/settings.mjs'
 import { build } from 'esbuild'
 const bundled = await build({ entryPoints: ['vendor/ascii-sharks/index.ts'], bundle: true, write: false, format: 'esm' })
 const { World, AsciiRenderer, paintGrid } = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'))
@@ -41,6 +41,22 @@ test('untrusted persisted settings are bounded and recover safely', () => {
     assert.equal(inputStep(key, 10), ranges[key][2])
   }
 })
+
+test('showInChat accepts only booleans and restores both persisted choices', () => {
+  assert.equal(typeof defaults.showInChat, 'boolean')
+  for (const showInChat of [true, false]) {
+    assert.equal(normalize({ showInChat }).showInChat, showInChat)
+    const values = new Map([[storageKey, JSON.stringify({ showInChat })]])
+    assert.equal(readSettings({ getItem: key => values.get(key) ?? null }).showInChat, showInChat)
+  }
+  for (const showInChat of [undefined, null, 'true', 'false', 0, 1, [], {}, new Boolean(false)]) {
+    assert.equal(normalize({ showInChat }).showInChat, defaults.showInChat)
+  }
+  const oldPreferences = { species: 'orca', enabled: false, glass: false, speed: 1.4 }
+  assert.deepEqual(normalize(oldPreferences), { ...defaults, ...oldPreferences })
+  assert.deepEqual(readSettings({ getItem: () => JSON.stringify(oldPreferences) }), { ...defaults, ...oldPreferences })
+})
+
 test('cell size, hidden grid and selected color reach the upstream rasterizer', t => {
   const fills = []
   const ctx = new Proxy({ fillStyle: '', fillRect(...coordinates) { assert.ok(coordinates.every(Number.isFinite)); fills.push(this.fillStyle) } }, { get: (target, key) => target[key] ?? (() => {}) })

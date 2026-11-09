@@ -20,7 +20,9 @@ Open **Settings → ASCII Whales**. Use Desktop's own plugin manager for Desktop
 
 ## Your ocean
 
-The animation fills the empty chat area behind the title and composer. It follows the native light/dark theme and disappears in existing conversations. Glass is neutral white or charcoal, with no blue tint; colors passing behind it are naturally blurred.
+The animation fills the chat area behind the title and composer and follows the native light/dark theme. **Show whales in chat** is on by default, keeping the ocean behind conversation messages. Turn it off in **Settings → ASCII Whales** to restore the empty-chat-only behavior. Glass is neutral white or charcoal, with no blue tint; colors passing behind it are naturally blurred.
+
+With **Frosted-glass background and composer** enabled, chat adds a translucent base, three gradients and backdrop blur between the ocean and messages, with light/dark variants. This non-interactive decoration never blurs text, code or controls and keeps filters away from fixed-menu ancestors. Adjust glass blur and opacity for readability; browsers without backdrop blur get a more opaque fallback. **Show ocean** remains the master switch. The chat preference is saved locally and **Restore defaults** resets it to on.
 
 Your chosen color anchors the whale body's midtones, with deeper shadows and brighter highlights that preserve per-cell lighting and body volume. Both themes use the same body palette, carrying your shade of blue from daylight into night.
 
@@ -45,6 +47,7 @@ Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded he
 | Setting | Default | Range |
 | --- | --- | --- |
 | Show whales | On | Entire scene and its glass |
+| Show whales in chat | On | Keep the ocean behind messages; off restores empty-chat-only behavior |
 | Whale species | Humpback | Humpback / Orca; saved and available in all three character styles |
 | Character style | ASCII | ASCII / Hanzi / Kanji; applied immediately and saved |
 | Font | Bundled default | Bundled default / Local custom; separate saved English and Chinese names |
@@ -62,7 +65,7 @@ Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded he
 | Background grid opacity | 0.05 | 0–1 |
 | Small fish | 170 | 0–1000 |
 | Wake intensity | 1 | 0–10 |
-| Frosted glass | On | Independent toggle |
+| Frosted-glass background and composer | On | Controls composer glass and the chat mist |
 | Glass blur | 14 px | 0–64 px |
 | Glass opacity | 0.45 | 0–1 |
 

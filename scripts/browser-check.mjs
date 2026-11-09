@@ -152,7 +152,7 @@ try {
   }
   const start = (Date.now() - epoch) / 1000
   await hint('官方设置控件 · 鲸鱼动画与中性毛玻璃')
-  const changes = [['鲸鱼数量', '2'], ...(!record ? [['游动速度', '0.7'], ['鲸鱼大小', '0.8'], ['字符栅格（倍）', '1.5']] : []), ['透明度', '0.6'],  ['底纹网格透明度', '0'], ['小鱼数量', '80'], ['尾迹强度', '2'], ['玻璃模糊（px）', '20'], ['玻璃不透明度', '0.3']]
+  const changes = [['鲸鱼数量', '2'], ...(!record ? [['游动速度', '0.7'], ['鲸鱼大小', '0.8'], ['字符栅格（倍）', '1.5']] : []), ['透明度', '0.6'],  ['底纹网格透明度', '0'], ['小鱼数量', '80'], ['尾迹强度', '2'], ['输入框模糊（px）', '20'], ['输入框不透明度', '0.3']]
   for (const [label, value] of changes) {
     const input = page.getByRole('spinbutton', { name: label, exact: true })
     await click(input); await input.fill(value); await input.press('Tab')
@@ -215,9 +215,9 @@ try {
     for (const [label, value] of changes) assert.equal(await page.getByRole('spinbutton', { name: label, exact: true }).inputValue(), value)
     assert.equal(await colorPicker.inputValue(), '#ec4899')
     assert.equal(await page.getByRole('button', { name: '汉字', exact: true }).getAttribute('aria-pressed'), 'true', 'Hanzi selection persists')
-    await click(page.getByRole('switch', { name: '毛玻璃背景与输入框' }))
+    await click(page.getByRole('switch', { name: '输入框毛玻璃' }))
     assert.equal(await page.locator('[data-whales-glass]').count(), 0)
-    await click(page.getByRole('switch', { name: '毛玻璃背景与输入框' }))
+    await click(page.getByRole('switch', { name: '输入框毛玻璃' }))
     assert.equal(await page.locator('[data-composer-card]').evaluate(e => getComputedStyle(e, '::before').backdropFilter), 'blur(20px)')
     await click(page.getByRole('switch', { name: '显示海洋' })); assert.equal(await canvas.isVisible(), false)
     await closeSettings(); await page.reload(); await editor.waitFor(); assert.equal(await canvas.isVisible(), false)
@@ -283,9 +283,9 @@ try {
         await page.locator('[data-conversation-content]').screenshot({ path: join(output, `chat-${id}.png`) })
       }
       await section('ASCII 鲸鱼')
-      await click(page.getByRole('switch', { name: '毛玻璃背景与输入框' }))
+      await click(page.getByRole('switch', { name: '背景毛玻璃' }))
       await mist.waitFor({ state: 'hidden' }); assert.equal(await canvas.isVisible(), true)
-      await click(page.getByRole('switch', { name: '毛玻璃背景与输入框' }))
+      await click(page.getByRole('switch', { name: '背景毛玻璃' }))
       await mist.waitFor({ state: 'visible' })
       await click(page.getByRole('switch', { name: '聊天中显示鲸鱼' }))
       await canvas.waitFor({ state: 'hidden' }); await mist.waitFor({ state: 'hidden' })

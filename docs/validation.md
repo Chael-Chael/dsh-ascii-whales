@@ -1,3 +1,11 @@
+# 0.1.6 validation · 2026-11-09
+
+- Whales in chat (contributed by @yuxbao in #1), on by default, with a neutral light/dark mist between the ocean and messages.
+- Glass split into background and composer switches with separate blur/opacity; defaults 19 px / 0.45 and 14 px / 0.45. Pre-split preferences migrate (background blur = composer blur × 1.35, rounded).
+- Typecheck, build and 13 tests pass, including split-glass normalization, migration, neutral dark mist, independent switches, hero/chat transitions and disposal.
+- Manual check in an isolated DSH Web instance (Edge): settings layout, default values (19 px / 14 px blur) and chat mist rendering.
+- Full `scripts/browser-check.mjs` run and GIF re-recording: NOT_RUN. Existing media predate chat whales. Desktop and other browsers: NOT_RUN.
+
 # 0.1.5 validation · 2026-10-22
 
 - Fixed CSS-pixel cell sizes across window resizing. Default grid scale: 1.

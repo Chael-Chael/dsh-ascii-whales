@@ -9,22 +9,22 @@ const styles = `
 .dsh-whales-chat-mist{position:absolute;inset:0;z-index:0;pointer-events:none}
 .dsh-whales-chat-mist[hidden]{display:none}
 /* Keep filters on decoration siblings so text stays sharp and fixed menus keep their viewport anchor. */
-.dsh-whales-scene[data-whales-chat][data-whales-glass] > .dsh-whales-chat-mist{
-  background-color:rgba(255,255,255,var(--whales-glass-opacity));
+.dsh-whales-scene[data-whales-chat-glass] > .dsh-whales-chat-mist{
+  background-color:rgba(255,255,255,var(--whales-chat-glass-opacity));
   background-image:
     linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.48)),
     linear-gradient(120deg,rgba(255,255,255,.14),transparent 58%),
     radial-gradient(ellipse at 50% 12%,rgba(255,255,255,.18),transparent 72%);
   background-repeat:no-repeat;background-size:100% 100%;
-  -webkit-backdrop-filter:blur(calc(var(--whales-blur) * 1.35)) saturate(.82);
-  backdrop-filter:blur(calc(var(--whales-blur) * 1.35)) saturate(.82);
+  -webkit-backdrop-filter:blur(var(--whales-chat-blur)) saturate(.82);
+  backdrop-filter:blur(var(--whales-chat-blur)) saturate(.82);
 }
-.dsh-whales-scene[data-whales-dark][data-whales-chat][data-whales-glass] > .dsh-whales-chat-mist{
-  background-color:rgba(20,24,32,var(--whales-glass-opacity));
+.dsh-whales-scene[data-whales-dark][data-whales-chat-glass] > .dsh-whales-chat-mist{
+  background-color:rgba(24,24,24,var(--whales-chat-glass-opacity));
   background-image:
-    linear-gradient(180deg,rgba(20,24,32,.48),rgba(20,24,32,.68)),
+    linear-gradient(180deg,rgba(24,24,24,.48),rgba(24,24,24,.68)),
     linear-gradient(120deg,rgba(255,255,255,.06),transparent 58%),
-    radial-gradient(ellipse at 50% 12%,rgba(150,175,220,.08),transparent 72%);
+    radial-gradient(ellipse at 50% 12%,rgba(255,255,255,.04),transparent 72%);
 }
 .dsh-whales-scene[data-whales-glass] [data-composer-card]{
   isolation:isolate;background:transparent;--dsw-specific-input-major:transparent;
@@ -39,8 +39,8 @@ const styles = `
 .dsh-whales-scene[data-whales-dark][data-whales-glass] [data-composer-card]::before{background:rgba(24,24,24,var(--whales-glass-opacity))}
 .dsh-whales-scene[data-whales-dark][data-whales-glass] [data-composer-card]{border-color:#ffffff30;box-shadow:0 12px 36px #0003,inset 0 1px 0 #ffffff12}
 @supports not (backdrop-filter:blur(1px)){
-  .dsh-whales-scene[data-whales-chat][data-whales-glass] > .dsh-whales-chat-mist{background-color:rgba(255,255,255,.92)}
-  .dsh-whales-scene[data-whales-dark][data-whales-chat][data-whales-glass] > .dsh-whales-chat-mist{background-color:rgba(20,24,32,.92)}
+  .dsh-whales-scene[data-whales-chat-glass] > .dsh-whales-chat-mist{background-color:rgba(255,255,255,.92)}
+  .dsh-whales-scene[data-whales-dark][data-whales-chat-glass] > .dsh-whales-chat-mist{background-color:rgba(24,24,24,.92)}
   .dsh-whales-scene[data-whales-glass] [data-composer-card]::before{background:rgba(255,255,255,.92)}
   .dsh-whales-scene[data-whales-dark][data-whales-glass] [data-composer-card]::before{background:rgba(24,24,24,.92)}
 }`
@@ -69,7 +69,7 @@ export function mountBackgrounds(getSettings) {
       const chat = active && scene.dataset.contentPhase !== 'hero'
       const dark = getComputedStyle(scene).colorScheme.includes('dark')
       canvas.hidden = !active
-      mist.hidden = !(chat && settings.glass)
+      mist.hidden = !(chat && settings.chatGlass)
       canvas.style.opacity = String(settings.opacity)
       const hanzi = settings.glyphMode !== 'ascii'
       const localFont = settings.fontSource === 'local' ? (hanzi ? settings.hanziFont : settings.asciiFont).trim() : ''
@@ -78,9 +78,12 @@ export function mountBackgrounds(getSettings) {
       canvas.style.fontFamily = fontFamily; canvas.style.fontWeight = hanzi ? '400' : '600'
       scene.toggleAttribute('data-whales-glass', active && settings.glass)
       scene.toggleAttribute('data-whales-chat', chat)
+      scene.toggleAttribute('data-whales-chat-glass', chat && settings.chatGlass)
       scene.toggleAttribute('data-whales-dark', dark)
       scene.style.setProperty('--whales-blur', `${settings.blur}px`)
       scene.style.setProperty('--whales-glass-opacity', String(settings.glassOpacity))
+      scene.style.setProperty('--whales-chat-blur', `${settings.chatBlur}px`)
+      scene.style.setProperty('--whales-chat-glass-opacity', String(settings.chatGlassOpacity))
       const nextPopulation = `${settings.species}/${settings.count}/${settings.size}/${settings.gridScale}/${settings.fishCount}/${settings.glyphMode}/${fontFamily}`
       const nextAppearance = `${settings.bodySwing}/${settings.turnAgility}/${settings.tailFrequency}/${settings.speed}/${dark}/${settings.gridOpacity}/${settings.wake}/${settings.color}/${settings.colorfulShimmer}/${settings.eyeColor}`
       if (engine && (!active || nextPopulation !== population)) { engine.destroy(); engine = undefined }
@@ -99,7 +102,8 @@ export function mountBackgrounds(getSettings) {
       engine?.destroy(); changes.disconnect(); canvas.remove(); mist.remove()
       scene.style.position = position; scene.style.removeProperty('--whales-blur')
       scene.style.removeProperty('--whales-glass-opacity')
-      scene.classList.remove('dsh-whales-scene'); scene.removeAttribute('data-whales-glass'); scene.removeAttribute('data-whales-chat'); scene.removeAttribute('data-whales-dark')
+      scene.style.removeProperty('--whales-chat-blur'); scene.style.removeProperty('--whales-chat-glass-opacity')
+      scene.classList.remove('dsh-whales-scene'); scene.removeAttribute('data-whales-glass'); scene.removeAttribute('data-whales-chat'); scene.removeAttribute('data-whales-chat-glass'); scene.removeAttribute('data-whales-dark')
     } })
     update()
   }

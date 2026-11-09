@@ -53,8 +53,22 @@ test('showInChat accepts only booleans and restores both persisted choices', () 
     assert.equal(normalize({ showInChat }).showInChat, defaults.showInChat)
   }
   const oldPreferences = { species: 'orca', enabled: false, glass: false, speed: 1.4 }
-  assert.deepEqual(normalize(oldPreferences), { ...defaults, ...oldPreferences })
-  assert.deepEqual(readSettings({ getItem: () => JSON.stringify(oldPreferences) }), { ...defaults, ...oldPreferences })
+  assert.deepEqual(normalize(oldPreferences), { ...defaults, ...oldPreferences, chatGlass: false })
+  assert.deepEqual(readSettings({ getItem: () => JSON.stringify(oldPreferences) }), { ...defaults, ...oldPreferences, chatGlass: false })
+})
+
+test('background and composer glass default on, save separately and migrate the shared setting', () => {
+  assert.equal(defaults.showInChat, true)
+  assert.equal(defaults.glass, true); assert.equal(defaults.chatGlass, true)
+  assert.equal(defaults.blur, 14); assert.equal(defaults.glassOpacity, .45)
+  assert.equal(defaults.chatBlur, 19); assert.equal(defaults.chatGlassOpacity, .45)
+  const split = { glass: false, chatGlass: true, blur: 5, glassOpacity: .1, chatBlur: 40, chatGlassOpacity: .9 }
+  assert.deepEqual(normalize(split), { ...defaults, ...split })
+  // A pre-split save keeps its look: one switch for both, background blur 1.35× the composer.
+  assert.deepEqual(normalize({ glass: true, blur: 20, glassOpacity: .3 }), { ...defaults, glass: true, chatGlass: true, blur: 20, glassOpacity: .3, chatBlur: 27, chatGlassOpacity: .3 })
+  assert.equal(normalize({ chatBlur: 999, chatGlassOpacity: -1 }).chatBlur, 64)
+  assert.equal(normalize({ chatBlur: 999, chatGlassOpacity: -1 }).chatGlassOpacity, 0)
+  assert.equal(normalize({ chatGlass: 'false' }).chatGlass, true)
 })
 
 test('cell size, hidden grid and selected color reach the upstream rasterizer', t => {

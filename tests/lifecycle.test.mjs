@@ -113,19 +113,20 @@ test('scene follows hero, preference, visibility and disposal without duplicate 
 
 test('chat mist follows explicit preferences and reuses the hero animation until disposal', async t => {
   const { win, card, frames, observers, settle, assertEngineListeners, setTheme, cleanup } = createSceneEnvironment(t, 'conversation')
-  let settings = { ...defaults, enabled: true, showInChat: true, glass: true }
+  let settings = { ...defaults, enabled: true, showInChat: true, glass: true, chatGlass: true }
   const scene = mountBackgrounds(() => settings)
   cleanup(() => scene.dispose())
   await settle()
 
   const canvas = card.querySelector('canvas'), mist = card.querySelector('.dsh-whales-chat-mist')
-  const assertLayers = (active, chat, glass = settings.glass) => {
+  const assertLayers = (active, chat, glass = settings.glass, chatGlass = settings.chatGlass) => {
     assert.equal(card.querySelectorAll('canvas').length, 1)
     assert.equal(card.querySelectorAll('.dsh-whales-chat-mist').length, 1)
     assert.equal(canvas.hidden, !active)
-    assert.equal(mist.hidden, !(active && chat && glass))
-    assert.equal(win.getComputedStyle(mist).display === 'none', !(active && chat && glass))
+    assert.equal(mist.hidden, !(active && chat && chatGlass))
+    assert.equal(win.getComputedStyle(mist).display === 'none', !(active && chat && chatGlass))
     assert.equal(card.hasAttribute('data-whales-chat'), active && chat)
+    assert.equal(card.hasAttribute('data-whales-chat-glass'), active && chat && chatGlass)
     assert.equal(card.hasAttribute('data-whales-glass'), active && glass)
     assert.equal(frames.size, active ? 1 : 0)
     assertEngineListeners(active ? 1 : 0)
@@ -145,6 +146,8 @@ test('chat mist follows explicit preferences and reuses the hero animation until
   assert.ok(lightRule, 'The injected stylesheet includes a light chat mist background')
   assert.ok(darkRule, 'The injected stylesheet includes a dark chat mist background')
   assert.notEqual(background(lightRule), background(darkRule))
+  // Dark mist matches the neutral composer glass: no channel may tint the ocean.
+  for (const [, r, g, b] of darkRule.cssText.matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+)/g)) assert.ok(r === g && g === b, `dark mist rgba(${r},${g},${b}) must be neutral`)
   assert.match(lightRule.style.getPropertyValue('backdrop-filter'), /^blur\(/)
 
   const [frameId, animation] = [...frames][0], observerCount = observers.length
@@ -166,11 +169,18 @@ test('chat mist follows explicit preferences and reuses the hero animation until
     assertLayers(true, true)
     assertSameAnimation()
   }
-  settings = { ...settings, glass: false }; scene.update()
-  assertLayers(true, true)
-  assertSameAnimation()
-  settings = { ...settings, glass: true }; scene.update()
-  assertLayers(true, true)
+  // Composer and background glass switch independently.
+  for (const [glass, chatGlass] of [[false, true], [true, false], [false, false], [true, true]]) {
+    settings = { ...settings, glass, chatGlass }; scene.update()
+    assertLayers(true, true)
+    assertSameAnimation()
+  }
+  settings = { ...settings, blur: 8, glassOpacity: .2, chatBlur: 30, chatGlassOpacity: .8 }; scene.update()
+  assert.equal(card.style.getPropertyValue('--whales-blur'), '8px')
+  assert.equal(card.style.getPropertyValue('--whales-glass-opacity'), '0.2')
+  assert.equal(card.style.getPropertyValue('--whales-chat-blur'), '30px')
+  assert.equal(card.style.getPropertyValue('--whales-chat-glass-opacity'), '0.8')
+  assert.match(lightRule.style.getPropertyValue('backdrop-filter'), /var\(--whales-chat-blur\)/)
   assertSameAnimation()
 
   settings = { ...settings, showInChat: false }; scene.update()
@@ -195,8 +205,8 @@ test('chat mist follows explicit preferences and reuses the hero animation until
     assert.equal(card.querySelector('canvas'), null)
     assert.equal(card.querySelector('.dsh-whales-chat-mist'), null)
     assert.equal(card.classList.contains('dsh-whales-scene'), false)
-    for (const attribute of ['data-whales-chat', 'data-whales-glass', 'data-whales-dark']) assert.equal(card.hasAttribute(attribute), false)
-    for (const property of ['--whales-blur', '--whales-glass-opacity']) assert.equal(card.style.getPropertyValue(property), '')
+    for (const attribute of ['data-whales-chat', 'data-whales-chat-glass', 'data-whales-glass', 'data-whales-dark']) assert.equal(card.hasAttribute(attribute), false)
+    for (const property of ['--whales-blur', '--whales-glass-opacity', '--whales-chat-blur', '--whales-chat-glass-opacity']) assert.equal(card.style.getPropertyValue(property), '')
     assert.equal(card.style.position, '')
     assert.equal(win.document.head.querySelector('style'), null)
     assert.equal(frames.size, 0)

@@ -1,6 +1,8 @@
-/** @type {{ species: 'humpback' | 'orca', enabled: boolean, showInChat: boolean, colorfulShimmer: boolean, eyeColor: 'primary' | 'black' | 'white', count: number, bodySwing: number, turnAgility: number, tailFrequency: number, speed: number, size: number, opacity: number, glass: boolean, blur: number, gridScale: number, gridOpacity: number, glassOpacity: number, fishCount: number, wake: number, color: string, glyphMode: 'ascii' | 'hanzi' | 'kanji', fontSource: 'bundled' | 'local', asciiFont: string, hanziFont: string }} */
-export const defaults = Object.freeze({ species: 'humpback', enabled: true, showInChat: true, colorfulShimmer: false, eyeColor: 'primary', count: 3, bodySwing: .8, turnAgility: .7, tailFrequency: .8, speed: .65, size: 1.2, opacity: 1, glass: true, blur: 14, gridScale: 1, gridOpacity: .05, glassOpacity: .45, fishCount: 170, wake: 1, color: '#4d6bfe', glyphMode: 'ascii', fontSource: 'bundled', asciiFont: '', hanziFont: '' })
-export const ranges = Object.freeze({ count: [1, 20, 1], speed: [0.1, 10, 0.1], bodySwing: [0, 3, .1], turnAgility: [.1, 3, .1], tailFrequency: [.1, 5, .1], size: [0.1, 10, 0.1], opacity: [0, 1, .05], gridScale: [.1, 10, .1], gridOpacity: [0, 1, .01], fishCount: [0, 1000, 10], wake: [0, 10, .1], blur: [0, 64, 1], glassOpacity: [0, 1, .05] })
+/** @type {{ species: 'humpback' | 'orca', enabled: boolean, showInChat: boolean, colorfulShimmer: boolean, eyeColor: 'primary' | 'black' | 'white', count: number, bodySwing: number, turnAgility: number, tailFrequency: number, speed: number, size: number, opacity: number, glass: boolean, blur: number, chatGlass: boolean, chatBlur: number, chatGlassOpacity: number, gridScale: number, gridOpacity: number, glassOpacity: number, fishCount: number, wake: number, color: string, glyphMode: 'ascii' | 'hanzi' | 'kanji', fontSource: 'bundled' | 'local', asciiFont: string, hanziFont: string }} */
+export const defaults = Object.freeze({ species: 'humpback', enabled: true, showInChat: true, colorfulShimmer: false, eyeColor: 'primary', count: 3, bodySwing: .8, turnAgility: .7, tailFrequency: .8, speed: .65, size: 1.2, opacity: 1, glass: true, blur: 14, chatGlass: true, chatBlur: 19, chatGlassOpacity: .45, gridScale: 1, gridOpacity: .05, glassOpacity: .45, fishCount: 170, wake: 1, color: '#4d6bfe', glyphMode: 'ascii', fontSource: 'bundled', asciiFont: '', hanziFont: '' })
+export const ranges = Object.freeze({ count: [1, 20, 1], speed: [0.1, 10, 0.1], bodySwing: [0, 3, .1], turnAgility: [.1, 3, .1], tailFrequency: [.1, 5, .1], size: [0.1, 10, 0.1], opacity: [0, 1, .05], gridScale: [.1, 10, .1], gridOpacity: [0, 1, .01], fishCount: [0, 1000, 10], wake: [0, 10, .1], blur: [0, 64, 1], glassOpacity: [0, 1, .05], chatBlur: [0, 64, 1], chatGlassOpacity: [0, 1, .05] })
+/** Composer and chat-background glass values render beneath their own switches instead of the general grid. */
+export const glassKeys = Object.freeze({ glass: ['blur', 'glassOpacity'], chatGlass: ['chatBlur', 'chatGlassOpacity'] })
 export const storageKey = 'dsh-ascii-whales:v1'
 export const fractionalSteps = ['speed', 'size', 'gridScale', 'wake', 'bodySwing', 'turnAgility', 'tailFrequency']
 export const inputStep = (key, value) => fractionalSteps.includes(key) && value < 1 ? .05 : ranges[key][2]
@@ -14,6 +16,11 @@ export function normalize(value) {
   if (typeof value.colorfulShimmer === 'boolean') result.colorfulShimmer = value.colorfulShimmer
   if (value.eyeColor === 'primary' || value.eyeColor === 'black' || value.eyeColor === 'white') result.eyeColor = value.eyeColor
   if (typeof value.glass === 'boolean') result.glass = value.glass
+  // Before the split, one glass switch/blur/opacity drove both layers; the mist blurred 1.35× the composer.
+  if (typeof value.chatGlass === 'boolean') result.chatGlass = value.chatGlass
+  else if (typeof value.glass === 'boolean') result.chatGlass = value.glass
+  if (value.chatBlur === undefined && typeof value.blur === 'number') value = { ...value, chatBlur: Math.round(value.blur * 1.35) }
+  if (value.chatGlassOpacity === undefined && typeof value.glassOpacity === 'number') value = { ...value, chatGlassOpacity: value.glassOpacity }
   if (value.glyphMode === 'ascii' || value.glyphMode === 'hanzi' || value.glyphMode === 'kanji') result.glyphMode = value.glyphMode
   if (value.fontSource === 'bundled' || value.fontSource === 'local') result.fontSource = value.fontSource
   for (const key of ['asciiFont', 'hanziFont']) {

@@ -22,7 +22,7 @@ Open **Settings → ASCII Whales**. Use Desktop's own plugin manager for Desktop
 
 The animation fills the chat area behind the title and composer and follows the native light/dark theme. **Show whales in chat** is on by default, keeping the ocean behind conversation messages. Turn it off in **Settings → ASCII Whales** to restore the empty-chat-only behavior. Glass is neutral white or charcoal, with no blue tint; colors passing behind it are naturally blurred.
 
-With **Frosted-glass background and composer** enabled, chat adds a translucent base, three gradients and backdrop blur between the ocean and messages, with light/dark variants. This non-interactive decoration never blurs text, code or controls and keeps filters away from fixed-menu ancestors. Adjust glass blur and opacity for readability; browsers without backdrop blur get a more opaque fallback. **Show ocean** remains the master switch. The chat preference is saved locally and **Restore defaults** resets it to on.
+With **Frosted-glass chat background** enabled, chat adds a translucent base, three gradients and backdrop blur between the ocean and messages, with light/dark variants. This non-interactive decoration never blurs text, code or controls and keeps filters away from fixed-menu ancestors. Background and composer glass have separate switches, each with its own blur and opacity right below it; browsers without backdrop blur get a more opaque fallback. **Show ocean** remains the master switch. The chat preference is saved locally and **Restore defaults** resets it to on.
 
 Your chosen color anchors the whale body's midtones, with deeper shadows and brighter highlights that preserve per-cell lighting and body volume. Both themes use the same body palette, carrying your shade of blue from daylight into night.
 
@@ -65,9 +65,12 @@ Humpbacks retain long flippers and broad flukes. Orcas have a broader rounded he
 | Background grid opacity | 0.05 | 0–1 |
 | Small fish | 170 | 0–1000 |
 | Wake intensity | 1 | 0–10 |
-| Frosted-glass background and composer | On | Controls composer glass and the chat mist |
-| Glass blur | 14 px | 0–64 px |
-| Glass opacity | 0.45 | 0–1 |
+| Frosted-glass chat background | On | Mist between the ocean and messages |
+| Background blur | 19 px | 0–64 px |
+| Background opacity | 0.45 | 0–1 |
+| Frosted-glass composer | On | Glass behind the composer |
+| Composer blur | 14 px | 0–64 px |
+| Composer opacity | 0.45 | 0–1 |
 
 Size, cell size, speed and wake step by **0.05** below 1 and **0.1** from 1 upward: `0.95 ↔ 1 ↔ 1.1`. You can also type values directly.
 
@@ -86,6 +89,8 @@ This adapts **[stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-shar
 The **Kanji** style adapts **[ascii-kanji-sharks · 漢字の海](https://github.com/michikusa404/ascii-kanji-sharks)** by **[michikusa404](https://github.com/michikusa404)** (MIT License, Copyright © 2026 michikusa404). Its ink-measured Kanji shading and text effects come from that project; movement and schooling use stackedlol/ascii-sharks. Our adaptations replace the shark silhouette with whales and add DSH integration, a transparent background, adjustable settings and offline fonts. The full license is preserved in [vendor/ascii-kanji-sharks/LICENSE](vendor/ascii-kanji-sharks/LICENSE).
 
 Thank you to **michikusa404** for turning Kanji into an ocean, and to **stackedlol** for the character-based schools and animation. Their publicly shared source made it possible to bring this sea into DeepSeek Harness.
+
+Thanks to [@yuxbao](https://github.com/yuxbao) for contributing [whales in chat and the background mist](https://github.com/Chael-Chael/dsh-ascii-whales/pull/1), letting the ocean keep swimming behind conversations.
 
 ```sh
 npm ci --legacy-peer-deps

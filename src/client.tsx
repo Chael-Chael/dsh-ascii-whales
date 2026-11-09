@@ -4,7 +4,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { Button, Input, Switch, Menu, IconChevronDownOutlineMedium } from '@deepseek-ai/dsh-client-ui-primitives'
 import { useState } from 'react'
-import { defaults, normalize, ranges, readSettings, storageKey, fractionalSteps, inputStep } from './settings.mjs'
+import { defaults, normalize, ranges, readSettings, storageKey, fractionalSteps, inputStep, glassKeys } from './settings.mjs'
 import { mountBackgrounds } from './background.mjs'
 
 const en = {
@@ -13,9 +13,10 @@ const en = {
   species: 'Whale species', humpback: 'Humpback', orca: 'Orca',
   eyeColor: 'Eye background', primary: 'Follow main color', black: 'Black', white: 'White',
   colorfulShimmer: 'Colorful shimmer', shimmerHint: 'ASCII / Hanzi only. Off: shades of your selected color. On: original seven-color accents.',
-  showInChat: 'Show whales in chat', chatHint: 'Keep the ocean behind conversation messages. Frosted glass adds a layered mist behind text; adjust glass blur and opacity for readability.',
-  glass: 'Frosted-glass background and composer', blur: 'Glass blur (px)',
-  gridScale: 'Cell size (×)', gridOpacity: 'Grid opacity', glassOpacity: 'Glass opacity',
+  showInChat: 'Show whales in chat', chatHint: 'Keep the ocean behind conversation messages. Background frosted glass adds a layered mist behind text; adjust its blur and opacity for readability.',
+  chatGlass: 'Frosted-glass chat background', chatBlur: 'Background blur (px)', chatGlassOpacity: 'Background opacity',
+  glass: 'Frosted-glass composer', blur: 'Composer blur (px)',
+  gridScale: 'Cell size (×)', gridOpacity: 'Grid opacity', glassOpacity: 'Composer opacity',
   fishCount: 'Small fish count', wake: 'Wake intensity', color: 'Ocean color',
   glyphMode: 'Character style', ascii: 'ASCII', hanzi: 'Hanzi', kanji: 'Kanji',
   fontSource: 'Font', bundled: 'Bundled default', local: 'Local custom', asciiFont: 'English font name', hanziFont: 'Chinese font name',
@@ -32,9 +33,10 @@ const zh: typeof en = {
   species: '鲸鱼种类', humpback: '座头鲸', orca: '虎鲸',
   eyeColor: '眼睛底色', primary: '跟随主色', black: '黑色', white: '白色',
   colorfulShimmer: '彩色闪烁', shimmerHint: '适用于 ASCII / 汉字。关闭时使用主色深浅，开启后使用原版七色点缀。',
-  showInChat: '聊天中显示鲸鱼', chatHint: '让海洋持续显示在对话消息后方。开启毛玻璃可在文字后方增加多层雾面，调节玻璃模糊与不透明度可改善可读性。',
-  glass: '毛玻璃背景与输入框', blur: '玻璃模糊（px）',
-  gridScale: '字符栅格（倍）', gridOpacity: '底纹网格透明度', glassOpacity: '玻璃不透明度',
+  showInChat: '聊天中显示鲸鱼', chatHint: '让海洋持续显示在对话消息后方。开启背景毛玻璃可在文字后方增加多层雾面，调节背景模糊与不透明度可改善可读性。',
+  chatGlass: '背景毛玻璃', chatBlur: '背景模糊（px）', chatGlassOpacity: '背景不透明度',
+  glass: '输入框毛玻璃', blur: '输入框模糊（px）',
+  gridScale: '字符栅格（倍）', gridOpacity: '底纹网格透明度', glassOpacity: '输入框不透明度',
   fishCount: '小鱼数量', wake: '尾迹强度', color: '海洋颜色',
   glyphMode: '字符风格', ascii: 'ASCII', hanzi: '汉字', kanji: 'Kanji',
   fontSource: '字体', bundled: '内置默认', local: '本机自定义', asciiFont: '英文字体名称', hanziFont: '中文字体名称',
@@ -80,6 +82,21 @@ export function apply(ctx: Context) {
       try { localStorage.setItem(storageKey, JSON.stringify(settings)); setError(false) }
       catch { setError(true) }
     }
+    const numberField = (key: keyof typeof ranges, disabled = false) => <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: disabled ? .5 : 1 }}>
+      <span style={{ whiteSpace: 'nowrap' }}>{t(key)}</span><Input aria-label={t(key)} type="number" disabled={disabled} min={ranges[key][0]} max={ranges[key][1]} step={inputStep(key, value[key])} value={value[key]} style={{ width: 80 }} onChange={event => {
+        let next = event.target.valueAsNumber
+        // Native stepping down from 1 uses the lower interval; typed values stay untouched.
+        if (fractionalSteps.includes(key) && value[key] === 1 && next === .9 && !(event.nativeEvent instanceof InputEvent)) next = .95
+        if (event.target.value !== '' && Number.isFinite(next)) save({ ...value, [key]: next })
+      }}/>
+    </label>
+    const nested = new Set<string>(Object.values(glassKeys).flat())
+    const glassGroup = (key: keyof typeof glassKeys) => <div key={key} style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t(key)}</span><Switch label={t(key)} checked={value[key]} onChange={on => save({ ...value, [key]: on })}/></div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px 24px', paddingLeft: 16, borderLeft: '2px solid var(--dsw-alias-border-l1, rgba(128,128,128,.2))' }}>
+        {glassKeys[key].map(k => numberField(k as keyof typeof ranges, !value[key]))}
+      </div>
+    </div>
     return <div className="dsh-whales-settings" style={{ display: 'grid', gap: 20, maxWidth: 640 }}>
       <div><h2 style={{ margin: '0 0 8px', fontSize: 20 }}>{t('title')}</h2><p style={{ color: 'var(--dsw-fg-muted)' }}>{t('description')}</p></div>
       <div className="setCard setCardOpen" style={{ padding: 20, display: 'grid', gap: 22 }}>
@@ -88,7 +105,8 @@ export function apply(ctx: Context) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('showInChat')}</span><Switch label={t('showInChat')} checked={value.showInChat} onChange={showInChat => save({ ...value, showInChat })}/></div>
           <p style={{ margin: 0, fontSize: 12, color: 'var(--dsw-fg-muted)', lineHeight: 1.6 }}>{t('chatHint')}</p>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{t('glass')}</span><Switch label={t('glass')} checked={value.glass} onChange={glass => save({ ...value, glass })}/></div>
+        {glassGroup('chatGlass')}
+        {glassGroup('glass')}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <span>{t('species')}</span><div role="group" aria-label={t('species')} style={{ display: 'flex', gap: 8 }}>
             {(['humpback', 'orca'] as const).map(species => <Button key={species} aria-pressed={value.species === species} variant={value.species === species ? 'primary' : undefined} onClick={() => save({ ...value, species })}>{t(species)}</Button>)}
@@ -133,14 +151,7 @@ export function apply(ctx: Context) {
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 24px' }}>
-          {(Object.keys(ranges) as (keyof typeof ranges)[]).map(key => <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <span>{t(key)}</span><Input aria-label={t(key)} type="number" min={ranges[key][0]} max={ranges[key][1]} step={inputStep(key, value[key])} value={value[key]} style={{ width: 80 }} onChange={event => {
-              let next = event.target.valueAsNumber
-              // Native stepping down from 1 uses the lower interval; typed values stay untouched.
-              if (fractionalSteps.includes(key) && value[key] === 1 && next === .9 && !(event.nativeEvent instanceof InputEvent)) next = .95
-              if (event.target.value !== '' && Number.isFinite(next)) save({ ...value, [key]: next })
-            }}/>
-          </label>)}
+          {(Object.keys(ranges) as (keyof typeof ranges)[]).filter(key => !nested.has(key)).map(key => numberField(key))}
         </div>
       </div>
       <p style={{ margin: 0, fontSize: 13, color: 'var(--dsw-fg-muted)', lineHeight: 1.6 }}>{t('note')}</p>

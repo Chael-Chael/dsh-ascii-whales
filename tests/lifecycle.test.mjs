@@ -9,7 +9,7 @@ const { OceanEngine } = await import('data:text/javascript;base64,' + Buffer.fro
 import { defaults } from '../src/settings.mjs'
 
 function createSceneEnvironment(t, phase = 'hero') {
-  const dom = new JSDOM(`<div data-conversation-content data-content-phase="${phase}"><div data-conversation-scroll></div></div>`, { pretendToBeVisual: true })
+  const dom = new JSDOM(`<div data-conversation-content data-content-phase="${phase}"><div data-conversation-scroll><div data-chat-flow></div></div></div>`, { pretendToBeVisual: true })
   const win = dom.window, frames = new Map(), observers = []
   let nextFrame = 0, colorScheme = 'light'
   const motion = new win.EventTarget(); motion.matches = false
@@ -137,8 +137,18 @@ test('chat mist follows explicit preferences and reuses the hero animation until
   assert.equal(canvas.style.pointerEvents, 'none')
   assertLayers(true, true)
 
+  // Other conversation views (memory, skills, context…) replace the chat flow and must stay unblurred.
+  const flow = card.querySelector('[data-chat-flow]')
+  flow.remove()
+  assert.equal(win.getComputedStyle(mist).display, 'none', 'Mist hides outside the Chat view')
+  assert.equal(win.getComputedStyle(canvas).display, 'none', 'Ocean hides outside the Chat view')
+  card.querySelector('[data-conversation-scroll]').append(flow)
+  assert.notEqual(win.getComputedStyle(mist).display, 'none', 'Mist returns with the Chat view')
+  assert.notEqual(win.getComputedStyle(canvas).display, 'none', 'Ocean returns with the Chat view')
+
   const style = win.document.head.querySelector('style')
   assert.match(style.textContent, /\.dsh-whales-chat-mist\b[^{}]*\{[^{}]*pointer-events\s*:\s*none/)
+  assert.match(style.textContent, /\.dsh-whales-scene:not\(:has\(\[data-chat-flow\]\)\)\s*>\s*\.dsh-whales-chat-mist\s*,[^{}]*>\s*\.dsh-whales-canvas\s*\{\s*display\s*:\s*none/, 'Mist is limited to the Chat view')
   const mistRules = [...style.sheet.cssRules].filter(rule => rule.selectorText?.includes('.dsh-whales-chat-mist'))
   const background = rule => rule.style.getPropertyValue('background') || rule.style.getPropertyValue('background-color')
   const lightRule = mistRules.find(rule => !rule.selectorText.includes('[data-whales-dark]') && background(rule))

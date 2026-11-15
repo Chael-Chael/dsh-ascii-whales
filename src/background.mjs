@@ -8,6 +8,9 @@ const styles = `
 .dsh-whales-scene > [data-conversation-scroll]{position:relative;z-index:1}
 .dsh-whales-chat-mist{position:absolute;inset:0;z-index:0;pointer-events:none}
 .dsh-whales-chat-mist[hidden]{display:none}
+/* Ocean and mist in a conversation belong to the Chat view only; other views (memory, skills, context…) stay plain. */
+.dsh-whales-scene:not(:has([data-chat-flow])) > .dsh-whales-chat-mist,
+.dsh-whales-scene[data-whales-chat]:not(:has([data-chat-flow])) > .dsh-whales-canvas{display:none}
 /* Keep filters on decoration siblings so text stays sharp and fixed menus keep their viewport anchor. */
 .dsh-whales-scene[data-whales-chat-glass] > .dsh-whales-chat-mist{
   background-color:rgba(255,255,255,var(--whales-chat-glass-opacity));
